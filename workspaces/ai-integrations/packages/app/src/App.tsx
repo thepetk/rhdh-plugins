@@ -57,6 +57,7 @@ import {
   AiNewsPage,
 } from '@red-hat-developer-hub/backstage-plugin-ai-experience';
 import { githubAuthApiRef } from '@backstage/core-plugin-api';
+import { CustomizedSignInPagePage } from '@@red-hat-developer-hub/backstage-plugin-customized-sign-in-page';
 
 const githubProvider = {
   id: 'github-auth-provider',
@@ -128,6 +129,10 @@ const routes = (
     <Route path="/settings" element={<UserSettingsPage />} />
     <Route path="/catalog-graph" element={<CatalogGraphPage />} />
     <Route path="/news" element={<AiNewsPage />} />
+    <Route
+      path="/customized-sign-in-page"
+      element={<CustomizedSignInPagePage />}
+    />
   </FlatRoutes>
 );
 
