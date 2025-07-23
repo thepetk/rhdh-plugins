@@ -27,11 +27,13 @@ export const customizedSignInPagePlugin = createPlugin({
   },
 });
 
-export const CustomizedSignInPagePage = customizedSignInPagePlugin.provide(
+export const CustomizedSignInPage = customizedSignInPagePlugin.provide(
   createRoutableExtension({
-    name: 'CustomizedSignInPagePage',
+    name: 'CustomizedSignInPage',
     component: () =>
-      import('./components/ExampleComponent').then(m => m.ExampleComponent),
+      import('./components/CustomizedSignInPage').then(
+        m => m.CustomizedSignInPage,
+      ),
     mountPoint: rootRouteRef,
   }),
 );

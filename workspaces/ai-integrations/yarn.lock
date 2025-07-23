@@ -10725,6 +10725,31 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@red-hat-developer-hub/backstage-plugin-customized-sign-in-page@workspace:^, @red-hat-developer-hub/backstage-plugin-customized-sign-in-page@workspace:plugins/customized-sign-in-page":
+  version: 0.0.0-use.local
+  resolution: "@red-hat-developer-hub/backstage-plugin-customized-sign-in-page@workspace:plugins/customized-sign-in-page"
+  dependencies:
+    "@backstage/cli": ^0.31.0
+    "@backstage/core-app-api": ^1.16.0
+    "@backstage/core-components": ^0.17.0
+    "@backstage/core-plugin-api": ^1.10.5
+    "@backstage/dev-utils": ^1.1.8
+    "@backstage/test-utils": ^1.7.6
+    "@backstage/theme": ^0.6.4
+    "@material-ui/core": ^4.9.13
+    "@material-ui/icons": ^4.9.1
+    "@material-ui/lab": ^4.0.0-alpha.61
+    "@testing-library/jest-dom": ^6.0.0
+    "@testing-library/react": ^14.0.0
+    "@testing-library/user-event": ^14.0.0
+    msw: ^1.0.0
+    react: ^16.13.1 || ^17.0.0 || ^18.0.0
+    react-use: ^17.2.4
+  peerDependencies:
+    react: ^16.13.1 || ^17.0.0 || ^18.0.0
+  languageName: unknown
+  linkType: soft
+
 "@red-hat-developer-hub/backstage-plugin-global-header@npm:^1.4.0":
   version: 1.5.0
   resolution: "@red-hat-developer-hub/backstage-plugin-global-header@npm:1.5.0"
@@ -15297,6 +15322,7 @@ __metadata:
     "@material-ui/icons": ^4.9.1
     "@playwright/test": ^1.32.3
     "@red-hat-developer-hub/backstage-plugin-ai-experience": "workspace:^"
+    "@red-hat-developer-hub/backstage-plugin-customized-sign-in-page": "workspace:^"
     "@red-hat-developer-hub/backstage-plugin-global-header": ^1.4.0
     "@red-hat-developer-hub/backstage-plugin-theme": ^0.6.0
     "@testing-library/dom": ^9.0.0
@@ -18181,31 +18207,6 @@ __metadata:
   checksum: 4f69ce1b19c6533396c1ac05669f1e7fa96f676a6dd0c70320281974630b50716b454f8cee51f3207719498cf9029b052f21a38fda01ad402ad87ac4b76a829f
   languageName: node
   linkType: hard
-
-"customized-sign-in-page-8cdf14@workspace:plugins/customized-sign-in-page":
-  version: 0.0.0-use.local
-  resolution: "customized-sign-in-page-8cdf14@workspace:plugins/customized-sign-in-page"
-  dependencies:
-    "@backstage/cli": ^0.31.0
-    "@backstage/core-app-api": ^1.16.0
-    "@backstage/core-components": ^0.17.0
-    "@backstage/core-plugin-api": ^1.10.5
-    "@backstage/dev-utils": ^1.1.8
-    "@backstage/test-utils": ^1.7.6
-    "@backstage/theme": ^0.6.4
-    "@material-ui/core": ^4.9.13
-    "@material-ui/icons": ^4.9.1
-    "@material-ui/lab": ^4.0.0-alpha.61
-    "@testing-library/jest-dom": ^6.0.0
-    "@testing-library/react": ^14.0.0
-    "@testing-library/user-event": ^14.0.0
-    msw: ^1.0.0
-    react: ^16.13.1 || ^17.0.0 || ^18.0.0
-    react-use: ^17.2.4
-  peerDependencies:
-    react: ^16.13.1 || ^17.0.0 || ^18.0.0
-  languageName: unknown
-  linkType: soft
 
 "d3-color@npm:1 - 3":
   version: 3.1.0

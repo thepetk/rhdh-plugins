@@ -1,6 +1,13 @@
 app:
   title: RHDH AI
   baseUrl: http://localhost:3000
+  components:
+    SignInPage:
+      package: '@red-hat-developer-hub/backstage-plugin-customized-sign-in-page'
+      exportName: 'CustomizedSignInPage'
+      props:
+        title: "Select a sign-in method"
+        align: "center"
 
 organization:
   name: Red Hat

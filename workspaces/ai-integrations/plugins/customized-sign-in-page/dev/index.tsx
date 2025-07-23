@@ -17,13 +17,13 @@ import React from 'react';
 import { createDevApp } from '@backstage/dev-utils';
 import {
   customizedSignInPagePlugin,
-  CustomizedSignInPagePage,
+  CustomizedSignInPage,
 } from '../src/plugin';
 
 createDevApp()
   .registerPlugin(customizedSignInPagePlugin)
   .addPage({
-    element: <CustomizedSignInPagePage />,
+    element: <CustomizedSignInPage />,
     title: 'Root Page',
     path: '/customized-sign-in-page',
   })

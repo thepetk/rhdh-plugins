@@ -13,4 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { ExampleFetchComponent } from './ExampleFetchComponent';
+import React from 'react';
+import { SignInPage } from '@backstage/core-components';
+// eslint-disable-next-line no-restricted-imports
+import { Box, Alert } from '@mui/material';
+
+export const CustomizedSignInPage = (props: any) => {
+  return (
+    <SignInPage auto {...props}>
+      <Box mt={2} maxWidth={600}>
+        <Alert severity="info">
+          For new users trying to access with Red Hat SSO: if your first attempt
+          has failed, please wait 5 minutes and try again.
+        </Alert>
+      </Box>
+    </SignInPage>
+  );
+};
