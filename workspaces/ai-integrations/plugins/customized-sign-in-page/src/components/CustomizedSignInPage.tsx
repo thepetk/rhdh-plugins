@@ -15,18 +15,28 @@
  */
 import React from 'react';
 import { SignInPage } from '@backstage/core-components';
-// eslint-disable-next-line no-restricted-imports
-import { Box, Alert } from '@mui/material';
+import { oidcAuthApiRef } from '@backstage/core-plugin-api';
 
-export const CustomizedSignInPage = (props: any) => {
-  return (
-    <SignInPage auto {...props}>
-      <Box mt={2} maxWidth={600}>
-        <Alert severity="info">
-          For new users trying to access with Red Hat SSO: if your first attempt
-          has failed, please wait 5 minutes and try again.
-        </Alert>
-      </Box>
-    </SignInPage>
-  );
-};
+export const CustomSignInPage = () => (
+  <SignInPage
+    auto
+    provider={{
+      id: 'oidc',
+      title: 'OIDC',
+      message: 'Sign in using OIDC',
+      apiRef: oidcAuthApiRef,
+    }}
+  >
+    <div
+      style={{
+        backgroundColor: '#fff3cd',
+        padding: '12px',
+        border: '1px solid #ffeeba',
+        marginBottom: '1rem',
+      }}
+    >
+      <strong>Note:</strong> If you are signing in for the first time with RH
+      SSO, you might need to try again after a few moments.
+    </div>
+  </SignInPage>
+);
