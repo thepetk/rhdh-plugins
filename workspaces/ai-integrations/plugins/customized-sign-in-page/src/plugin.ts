@@ -13,21 +13,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import {
+  createApiFactory,
   createPlugin,
   createRoutableExtension,
+  discoveryApiRef,
+  configApiRef,
+  oauthRequestApiRef,
 } from '@backstage/core-plugin-api';
-
+import { OAuth2 } from '@backstage/core-app-api';
 import { rootRouteRef } from './routes';
+import { keycloakApiRef } from './api';
 
-export const customizedSignInPagePlugin = createPlugin({
-  id: 'customized-sign-in-page',
+export const customizedSignInPlugin = createPlugin({
+  id: 'customized-sign-in',
   routes: {
     root: rootRouteRef,
   },
+  apis: [
+    createApiFactory({
+      api: keycloakApiRef,
+      deps: {
+        discoveryApi: discoveryApiRef,
+        oauthRequestApi: oauthRequestApiRef,
+        configApi: configApiRef,
+      },
+      factory: ({ discoveryApi, oauthRequestApi, configApi }) =>
+        OAuth2.create({
+          configApi,
+          discoveryApi,
+          oauthRequestApi,
+          provider: {
+            id: 'oidc',
+            title: 'Keycloak OIDC',
+            icon: () => null,
+          },
+          environment: configApi.getOptionalString('auth.environment'),
+          defaultScopes: ['openid', 'profile', 'email'],
+        }),
+    }),
+  ],
 });
 
-export const CustomizedSignInPage = customizedSignInPagePlugin.provide(
+export const CustomizedSignInPage = customizedSignInPlugin.provide(
   createRoutableExtension({
     name: 'CustomizedSignInPage',
     component: () =>

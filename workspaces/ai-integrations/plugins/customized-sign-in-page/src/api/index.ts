@@ -13,8 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createRouteRef } from '@backstage/core-plugin-api';
+import {
+  ApiRef,
+  BackstageIdentityApi,
+  createApiRef,
+  OAuthApi,
+  OpenIdConnectApi,
+  ProfileInfoApi,
+  SessionApi,
+} from '@backstage/core-plugin-api';
 
-export const rootRouteRef = createRouteRef({
-  id: 'customized-sign-in',
+export const keycloakApiRef: ApiRef<
+  OpenIdConnectApi &
+    ProfileInfoApi &
+    BackstageIdentityApi &
+    SessionApi &
+    OAuthApi
+> = createApiRef({
+  id: 'plugin.customized-sign-in.keycloak.api-ref',
 });

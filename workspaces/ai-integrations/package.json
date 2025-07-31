@@ -61,5 +61,10 @@
     "*.{json,md}": [
       "prettier --write"
     ]
+  },
+  "dependencies": {
+    "@backstage/core-components": "latest",
+    "@backstage/plugin-auth-node": "^0.6.5",
+    "@backstage/plugin-auth-react": "^0.1.17"
   }
 }

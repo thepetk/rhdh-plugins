@@ -15,28 +15,21 @@
  */
 import React from 'react';
 import { SignInPage } from '@backstage/core-components';
-import { oidcAuthApiRef } from '@backstage/core-plugin-api';
+import { keycloakApiRef } from '../api';
 
-export const CustomSignInPage = () => (
-  <SignInPage
-    auto
-    provider={{
-      id: 'oidc',
-      title: 'OIDC',
-      message: 'Sign in using OIDC',
-      apiRef: oidcAuthApiRef,
-    }}
-  >
-    <div
-      style={{
-        backgroundColor: '#fff3cd',
-        padding: '12px',
-        border: '1px solid #ffeeba',
-        marginBottom: '1rem',
-      }}
-    >
-      <strong>Note:</strong> If you are signing in for the first time with RH
-      SSO, you might need to try again after a few moments.
+export const CustomizedSignInPage = (props: any) => {
+  return (
+    <div style={{ visibility: 'hidden' }}>
+      <SignInPage
+        {...props}
+        auto
+        provider={{
+          id: 'oidc',
+          title: 'Red Hat account',
+          message: 'Sign in using your Red Hat account',
+          apiRef: keycloakApiRef,
+        }}
+      />
     </div>
-  </SignInPage>
-);
+  );
+};
