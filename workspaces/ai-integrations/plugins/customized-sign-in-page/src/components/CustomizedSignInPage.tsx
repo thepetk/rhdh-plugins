@@ -19,16 +19,34 @@ import { keycloakApiRef } from '../api';
 
 export const CustomizedSignInPage = (props: any) => {
   return (
-    <div style={{ visibility: 'hidden' }}>
+    <div>
+      <div
+        style={{
+          backgroundColor: '#323232',
+          color: '#f0c000',
+          padding: '16px',
+          border: '1px solid #f0c000',
+          borderRadius: '6px',
+          marginBottom: '24px',
+          fontSize: '14px',
+          fontFamily: 'inherit',
+        }}
+      >
+        <strong style={{ color: '#f5c842' }}>⚠️ Note:</strong> Your first-time
+        login with Red Hat SSO might fail. Please wait a few minutes and try
+        again.
+      </div>
       <SignInPage
         {...props}
         auto
-        provider={{
-          id: 'oidc',
-          title: 'Red Hat account',
-          message: 'Sign in using your Red Hat account',
-          apiRef: keycloakApiRef,
-        }}
+        providers={[
+          {
+            id: 'oidc',
+            title: 'Red Hat SSO',
+            message: 'Sign in using Red Hat SSO',
+            apiRef: keycloakApiRef,
+          },
+        ]}
       />
     </div>
   );

@@ -15,22 +15,19 @@
  */
 
 import {
-  createApiFactory,
   createPlugin,
-  createRoutableExtension,
+  createApiFactory,
   discoveryApiRef,
   configApiRef,
   oauthRequestApiRef,
 } from '@backstage/core-plugin-api';
+
 import { OAuth2 } from '@backstage/core-app-api';
-import { rootRouteRef } from './routes';
 import { keycloakApiRef } from './api';
+import { CustomizedSignInPage } from './components/CustomizedSignInPage';
 
 export const customizedSignInPlugin = createPlugin({
-  id: 'customized-sign-in',
-  routes: {
-    root: rootRouteRef,
-  },
+  id: 'customized-sign-in-page',
   apis: [
     createApiFactory({
       api: keycloakApiRef,
@@ -46,23 +43,13 @@ export const customizedSignInPlugin = createPlugin({
           oauthRequestApi,
           provider: {
             id: 'oidc',
-            title: 'Keycloak OIDC',
+            title: 'Keycloak',
             icon: () => null,
           },
-          environment: configApi.getOptionalString('auth.environment'),
           defaultScopes: ['openid', 'profile', 'email'],
         }),
     }),
   ],
 });
 
-export const CustomizedSignInPage = customizedSignInPlugin.provide(
-  createRoutableExtension({
-    name: 'CustomizedSignInPage',
-    component: () =>
-      import('./components/CustomizedSignInPage').then(
-        m => m.CustomizedSignInPage,
-      ),
-    mountPoint: rootRouteRef,
-  }),
-);
+export { CustomizedSignInPage };

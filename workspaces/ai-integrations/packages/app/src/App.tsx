@@ -42,11 +42,7 @@ import { searchPage } from './components/search/SearchPage';
 import { Root } from './components/Root';
 import { getThemes } from '@red-hat-developer-hub/backstage-plugin-theme';
 
-import {
-  AlertDisplay,
-  OAuthRequestDialog,
-  SignInPage,
-} from '@backstage/core-components';
+import { AlertDisplay, OAuthRequestDialog } from '@backstage/core-components';
 import { createApp } from '@backstage/app-defaults';
 import { AppRouter, FlatRoutes } from '@backstage/core-app-api';
 import { CatalogGraphPage } from '@backstage/plugin-catalog-graph';
@@ -87,9 +83,7 @@ const app = createApp({
   },
   themes: getThemes(),
   components: {
-    SignInPage: props => (
-      <SignInPage {...props} auto providers={['guest', githubProvider]} />
-    ),
+    SignInPage: CustomizedSignInPage,
   },
 });
 
@@ -123,14 +117,13 @@ const routes = (
         </RequirePermission>
       }
     />
-    <Route path="/customized-sign-in" element={<CustomizedSignInPage />} />
     <Route path="/search" element={<SearchPage />}>
       {searchPage}
     </Route>
     <Route path="/settings" element={<UserSettingsPage />} />
     <Route path="/catalog-graph" element={<CatalogGraphPage />} />
     <Route path="/news" element={<AiNewsPage />} />
-    <Route path="/customized-sign-in-page" element={<CustomizedSignInPage />} />
+    <Route path="/sign-in" element={<CustomizedSignInPage />} />
   </FlatRoutes>
 );
 
