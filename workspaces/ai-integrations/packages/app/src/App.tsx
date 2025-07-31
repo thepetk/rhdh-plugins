@@ -123,6 +123,7 @@ const routes = (
         </RequirePermission>
       }
     />
+    <Route path="/customized-sign-in" element={<CustomizedSignInPage />} />
     <Route path="/search" element={<SearchPage />}>
       {searchPage}
     </Route>
