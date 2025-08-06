@@ -32,9 +32,16 @@ export const CustomizedSignInPage = (props: any) => {
           fontFamily: 'inherit',
         }}
       >
-        <strong style={{ color: '#f5c842' }}>⚠️ Note:</strong> Your first-time
-        login with Red Hat SSO might fail. Please wait a few minutes and try
-        again.
+        <strong style={{ color: '#f5c842' }}>⚠️ Note:</strong> If this is your
+        first time logging in the rolling demo environment, you may see the
+        error{' '}
+        <em>
+          "Failed to sign-in, unable to resolve user identity. Please verify
+          that your catalog contains the expected User entities that would match
+          your configured sign-in resolver."
+        </em>
+        . Please wait a few minutes and try again since it will take some time
+        for the registration to complete.
       </div>
       <SignInPage
         {...props}
