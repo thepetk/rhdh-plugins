@@ -1,0 +1,26 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: developer-model-service
+  namespace: default
+  title: Developer Model Service
+  description: A vLLM and 3scale-based model service providing models for developer tools.
+  tags: [genai, ibm-granite, vllm, llm, developer-model-service, authenticated, gateway]
+  links:
+    - url: https://model-service.apps.domain.com
+      title: Access
+      icon: web
+    - url: https://ibm-granite-8b-code-instruct-vllm.apps.domain.com
+      title: API URL
+      icon: web
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+spec:
+  type: model-server
+  owner: user:default/exampleuser
+  lifecycle: production
+  providesApis:
+    - model-service-api
+  dependsOn:
+    - resource:default/ibm-granite-8b-code-instruct
+    - api:default/model-service-api

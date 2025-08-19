@@ -63,6 +63,7 @@ catalog:
 integrations:
   github:
     - host: github.com
+      token:  ${GITHUB_TOKEN}
 
 scorecards:
   enabled: false
