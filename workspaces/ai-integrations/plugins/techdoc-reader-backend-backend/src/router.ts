@@ -21,7 +21,10 @@ import express, {
 import type { Config } from '@backstage/config';
 import { LoggerService, DiscoveryService } from '@backstage/backend-plugin-api';
 import { Publisher } from '@backstage/plugin-techdocs-node';
-import { CatalogClient } from '@backstage/catalog-client';
+import {
+  CatalogClient,
+  CATALOG_FILTER_EXISTS,
+} from '@backstage/catalog-client';
 
 type TechdocsParams = {
   namespace: string;
@@ -42,47 +45,60 @@ export async function createRouter(opts: {
 
   router.use('/static/docs', await publisher.docsRouter());
 
-  router.get('/list_techdocs', (async (_req, res) => {
+  router.get('/list_techdocs', async (req, res) => {
     try {
       const catalog = new CatalogClient({ discoveryApi: discovery });
 
       const resp = await catalog.getEntities({
+        filter: [
+          {
+            'metadata.annotations.backstage.io/techdocs-ref':
+              CATALOG_FILTER_EXISTS,
+          },
+        ],
         fields: [
           'kind',
           'metadata.namespace',
           'metadata.name',
           'metadata.title',
         ],
-        limit: 500,
       });
 
-      const checks = await Promise.allSettled(
-        resp.items.map(async e => {
-          const ns = (e.metadata.namespace ?? 'default').toLowerCase();
-          const kind = e.kind.toLowerCase();
-          const name = e.metadata.name.toLowerCase();
+      // Build absolute URLs using backend.baseUrl so MCP tools can call directly
+      const backendBase = config.getString('backend.baseUrl'); // e.g. http://localhost:7007
+      const pluginBase = '/api/techdocs-retrieval';
+      const abs = (p: string) => new URL(p, backendBase).toString();
 
-          await publisher.fetchTechDocsMetadata({ namespace: ns, kind, name });
+      const items = resp.items.map(e => {
+        const ns = (e.metadata.namespace ?? 'default').toLowerCase();
+        const kind = e.kind.toLowerCase();
+        const name = e.metadata.name.toLowerCase();
+        const entityRef = `${kind}:${ns}/${name}`;
 
-          return {
-            kind: e.kind,
-            namespace: e.metadata.namespace ?? 'default',
-            name: e.metadata.name,
-            title: e.metadata.title,
-          };
-        }),
-      );
+        // Static docs are served by the TechDocs publisher's docsRouter()
+        // at /static/docs/:namespace/:kind/:name/...
+        const staticBase = `${pluginBase}/static/docs/${ns}/${kind}/${name}/`;
 
-      const items = checks
-        .filter(r => r.status === 'fulfilled')
-        .map(r => (r as PromiseFulfilledResult<any>).value);
+        return {
+          kind: e.kind,
+          namespace: e.metadata.namespace ?? 'default',
+          name: e.metadata.name,
+          title: e.metadata.title ?? e.metadata.name,
+          entityRef,
+          staticDocsBaseUrl: abs(staticBase),
+          staticDocsIndexUrl: abs(`${staticBase}index.html`),
+          metadataUrl: abs(
+            `${pluginBase}/techdocs/${ns}/${kind}/${name}/metadata`,
+          ),
+        };
+      });
 
       return res.json({ count: items.length, items });
     } catch (e) {
       logger.error(e);
       return res.status(500).json({ error: String(e) });
     }
-  }) as RequestHandler);
+  });
 
   const techdocsHandler: RequestHandler<TechdocsParams> = (req, res, next) => {
     try {
