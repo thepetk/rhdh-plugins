@@ -21,6 +21,7 @@ import express, {
 import type { Config } from '@backstage/config';
 import { LoggerService, DiscoveryService } from '@backstage/backend-plugin-api';
 import { Publisher } from '@backstage/plugin-techdocs-node';
+import { CatalogClient } from '@backstage/catalog-client';
 
 type TechdocsParams = {
   namespace: string;
@@ -40,6 +41,48 @@ export async function createRouter(opts: {
   const publisher = await Publisher.fromConfig(config, { logger, discovery });
 
   router.use('/static/docs', await publisher.docsRouter());
+
+  router.get('/list_techdocs', (async (_req, res) => {
+    try {
+      const catalog = new CatalogClient({ discoveryApi: discovery });
+
+      const resp = await catalog.getEntities({
+        fields: [
+          'kind',
+          'metadata.namespace',
+          'metadata.name',
+          'metadata.title',
+        ],
+        limit: 500,
+      });
+
+      const checks = await Promise.allSettled(
+        resp.items.map(async e => {
+          const ns = (e.metadata.namespace ?? 'default').toLowerCase();
+          const kind = e.kind.toLowerCase();
+          const name = e.metadata.name.toLowerCase();
+
+          await publisher.fetchTechDocsMetadata({ namespace: ns, kind, name });
+
+          return {
+            kind: e.kind,
+            namespace: e.metadata.namespace ?? 'default',
+            name: e.metadata.name,
+            title: e.metadata.title,
+          };
+        }),
+      );
+
+      const items = checks
+        .filter(r => r.status === 'fulfilled')
+        .map(r => (r as PromiseFulfilledResult<any>).value);
+
+      return res.json({ count: items.length, items });
+    } catch (e) {
+      logger.error(e);
+      return res.status(500).json({ error: String(e) });
+    }
+  }) as RequestHandler);
 
   const techdocsHandler: RequestHandler<TechdocsParams> = (req, res, next) => {
     try {
