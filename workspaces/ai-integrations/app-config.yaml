@@ -55,6 +55,12 @@ notifications:
       sender: 'Backstage <no-reply@localhost>'
 
 catalog:
+  locations:
+    - type: url
+      target: https://github.com/thepetk/model-catalog/blob/main/developer-model-service/catalog-info.yaml 
+      presence: required
+      rules:
+        - allow: [Component, API, Resource, Location]
   providers:
     backstageOpenapi:
       plugins:
