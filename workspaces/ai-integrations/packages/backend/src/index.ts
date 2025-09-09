@@ -79,6 +79,8 @@ backend.add(
 backend.add(import('@backstage/plugin-auth-backend-module-github-provider'));
 
 backend.add(
-  import('@red-hat-developer-hub/backstage-plugin-techdocs-retrieval-backend'),
+  import(
+    '@red-hat-developer-hub/backstage-plugin-mcp-techdocs-retrieval-backend'
+  ),
 );
 backend.start();

@@ -14,3 +14,10 @@
  * limitations under the License.
  */
 export { techdocsRetrievalPlugin as default } from './plugin';
+export { TechDocsService } from './service';
+export type {
+  TechDocsEntity,
+  TechDocsEntityWithUrls,
+  TechDocsCoverageResult,
+  ListTechDocsOptions,
+} from './service';

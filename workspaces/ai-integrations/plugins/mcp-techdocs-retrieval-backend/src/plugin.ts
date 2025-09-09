@@ -17,21 +17,27 @@ import {
   coreServices,
   createBackendPlugin,
 } from '@backstage/backend-plugin-api';
-import { createRouter } from './router';
+import { actionsRegistryServiceRef } from '@backstage/backend-plugin-api/alpha';
+import { registerTechDocsActions } from './actions';
 
-export const techdocsRetrievalPlugin = createBackendPlugin({
-  pluginId: 'techdocs-retrieval',
+export const mcpTechdocsRetrievalPlugin = createBackendPlugin({
+  pluginId: 'mcp-techdocs-retrieval',
   register(env) {
     env.registerInit({
       deps: {
         logger: coreServices.logger,
-        http: coreServices.httpRouter,
         config: coreServices.rootConfig,
         discovery: coreServices.discovery,
+        actionsRegistry: actionsRegistryServiceRef,
       },
-      async init({ logger, http, config, discovery }) {
-        http.use(await createRouter({ logger, config, discovery }));
-        logger.info('TechDocs retrieval routes registered');
+      async init({ logger, config, discovery, actionsRegistry }) {
+        await registerTechDocsActions({
+          actionsRegistry,
+          logger,
+          config,
+          discovery,
+        });
+        logger.info('TechDocs MCP actions registered successfully');
       },
     });
   },

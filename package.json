@@ -25,18 +25,21 @@
     "@red-hat-developer-hub/rhdh-repo-tools": "portal:./workspaces/repo-tools/packages/cli",
     "@spotify/eslint-plugin": "^15.0.0",
     "@spotify/prettier-config": "^15.0.0",
+    "@types/express": "^5.0.3",
     "array-to-table": "^1.0.1",
     "eslint": "^8.6.0",
     "eslint-plugin-notice": "^0.9.10",
     "eslint-plugin-react": "^7.28.0",
     "eslint-plugin-testing-library": "^6.0.0",
+    "express": "^5.1.0",
     "fs-extra": "11.3.0",
     "husky": "^9.0.11",
     "lint-staged": "^15.2.2",
     "lodash": "^4.17.21",
     "lodash.escaperegexp": "^4.1.2",
     "node-fetch": "^2.6.7",
-    "prettier": "^3.4.2"
+    "prettier": "^3.4.2",
+    "zod": "^4.1.5"
   },
   "prettier": "@spotify/prettier-config",
   "lint-staged": {

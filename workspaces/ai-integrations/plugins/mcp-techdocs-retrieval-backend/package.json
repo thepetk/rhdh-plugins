@@ -1,5 +1,5 @@
 {
-  "name": "@red-hat-developer-hub/backstage-plugin-techdocs-retrieval-backend",
+  "name": "@red-hat-developer-hub/backstage-plugin-mcp-techdocs-retrieval-backend",
   "version": "0.1.0",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -14,18 +14,16 @@
     "test": "backstage-cli package test"
   },
   "dependencies": {
-    "@backstage/backend-plugin-api": "^0.6.0",
+    "@backstage/backend-plugin-api": "^0.11.0",
     "@backstage/catalog-client": "^1.9.1",
     "@backstage/config": "^1.0.0",
     "@backstage/plugin-techdocs-node": "^1.0.0",
-    "express": "^4.17.1",
-    "node-fetch": "^2.6.7"
+    "zod": "^3.22.0"
   },
   "devDependencies": {
     "@backstage/backend-defaults": "^0.11.1",
     "@backstage/backend-test-utils": "^0.3.0",
     "@backstage/cli": "^0.22.0",
-    "@backstage/plugin-catalog-node": "^1.17.2",
-    "@types/express": "^4.17.21"
+    "@backstage/plugin-catalog-node": "^1.17.2"
   }
 }

@@ -1,4 +1,4 @@
-# techdocs-retrieval-backend
+# mcp-techdocs-retrieval-backend
 
 This plugin backend was templated using the Backstage CLI. You should replace this text with a description of your plugin backend.
 
