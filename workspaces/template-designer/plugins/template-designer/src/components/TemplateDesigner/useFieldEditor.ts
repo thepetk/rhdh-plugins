@@ -1,0 +1,145 @@
+/*
+ * Copyright Red Hat, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+type EditorState = null | {
+  target: HTMLInputElement | HTMLTextAreaElement;
+  label: string;
+  initialValue: string;
+};
+
+const resolveLabel = (element: HTMLInputElement | HTMLTextAreaElement) =>
+  element.getAttribute('aria-label') ??
+  element.name ??
+  element.placeholder ??
+  'Field editor';
+
+/**
+ * Provides a modal-friendly editing experience for readonly-looking inputs
+ * by letting users double-click any text field and edit its value centrally.
+ */
+export const useFieldEditor = () => {
+  const [editorState, setEditorState] = useState<EditorState>(null);
+  const interactionRootRef = useRef<HTMLDivElement | null>(null);
+
+  const closeEditor = useCallback(() => {
+    setEditorState(null);
+  }, []);
+
+  const applyEditorValue = useCallback(
+    (value: string) => {
+      const current = editorState;
+      if (!current) {
+        return;
+      }
+
+      const setNativeValue = (
+        element: HTMLInputElement | HTMLTextAreaElement,
+        nextValue: string,
+      ) => {
+        const valueSetter = Object.getOwnPropertyDescriptor(
+          element,
+          'value',
+        )?.set;
+        const prototype = Object.getPrototypeOf(element);
+        const prototypeValueSetter = Object.getOwnPropertyDescriptor(
+          prototype,
+          'value',
+        )?.set;
+
+        if (valueSetter && valueSetter !== prototypeValueSetter) {
+          prototypeValueSetter?.call(element, nextValue);
+        } else if (valueSetter) {
+          valueSetter.call(element, nextValue);
+        } else {
+          // eslint-disable-next-line no-param-reassign
+          element.value = nextValue;
+        }
+      };
+
+      setNativeValue(current.target, value);
+      current.target.dispatchEvent(new Event('input', { bubbles: true }));
+      closeEditor();
+    },
+    [closeEditor, editorState],
+  );
+
+  const openEditor = useCallback(
+    (target: HTMLInputElement | HTMLTextAreaElement) => {
+      setEditorState({
+        target,
+        label: resolveLabel(target),
+        initialValue: target.value,
+      });
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const root = interactionRootRef.current;
+    if (!root) {
+      return undefined;
+    }
+
+    const handleDoubleClick = (event: MouseEvent) => {
+      const target = event.target;
+      if (
+        target instanceof HTMLInputElement &&
+        !target.readOnly &&
+        !target.disabled
+      ) {
+        const type = target.type?.toLowerCase();
+        const editableTypes = [
+          'text',
+          'search',
+          'url',
+          'tel',
+          'email',
+          'number',
+          'password',
+        ];
+        const isTextual = !type || editableTypes.includes(type);
+        if (!isTextual || !target.value) {
+          return;
+        }
+        event.stopPropagation();
+        openEditor(target);
+        return;
+      }
+      if (
+        target instanceof HTMLTextAreaElement &&
+        !target.readOnly &&
+        !target.disabled &&
+        target.value
+      ) {
+        event.stopPropagation();
+        openEditor(target);
+      }
+    };
+
+    root.addEventListener('dblclick', handleDoubleClick, true);
+    return () => {
+      root.removeEventListener('dblclick', handleDoubleClick, true);
+    };
+  }, [openEditor]);
+
+  return {
+    editorState,
+    interactionRootRef,
+    closeEditor,
+    applyEditorValue,
+  };
+};
