@@ -64,6 +64,12 @@ import {
 } from '@patternfly/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
 
+// eslint-disable-next-line @backstage/no-mixed-plugin-imports
+import {
+  useScreenCaptureBuffer,
+  useScreenContextSettings,
+} from '@red-hat-developer-hub/backstage-plugin-lightspeed-screen-context';
+
 import { supportedFileTypes, TEMP_CONVERSATION_ID } from '../const';
 import {
   useBackstageUserIdentity,
@@ -86,6 +92,7 @@ import {
   getFootnoteProps,
   SortOption,
 } from '../utils/lightspeed-chatbox-utils';
+import { buildScreenContextPrompt } from '../utils/screen-context-utils';
 import Attachment from './Attachment';
 import { useFileAttachmentContext } from './AttachmentContext';
 import { DeleteModal } from './DeleteModal';
@@ -193,6 +200,12 @@ export const LightspeedChat = ({
     pinChat,
     unpinChat,
   } = usePinnedChatsSettings(user);
+
+  const { isScreenContextEnabled, handleScreenContextToggle } =
+    useScreenContextSettings(user);
+  const { screenshots } = useScreenCaptureBuffer({
+    enabled: isScreenContextEnabled,
+  });
 
   const { selectedSort, handleSortChange } = useSortSettings(user);
 
@@ -311,7 +324,7 @@ export const LightspeedChat = ({
   const [messages, setMessages] =
     useState<MessageProps[]>(conversationMessages);
 
-  const sendMessage = (message: string | number) => {
+  const sendMessage = async (message: string | number) => {
     if (conversationId !== TEMP_CONVERSATION_ID) {
       setNewChatCreated(false);
     }
@@ -320,7 +333,13 @@ export const LightspeedChat = ({
         prompt: message.toString(),
       }),
     );
-    handleInputPrompt(message.toString(), getAttachments(fileContents));
+
+    const fileAttachments = getAttachments(fileContents);
+    const apiPrompt = isScreenContextEnabled
+      ? buildScreenContextPrompt(message.toString(), screenshots)
+      : undefined;
+
+    handleInputPrompt(message.toString(), fileAttachments, apiPrompt);
     setIsSendButtonDisabled(true);
     setFileContents([]);
     setDraftMessage('');
@@ -739,6 +758,8 @@ export const LightspeedChat = ({
             setDisplayMode={setDisplayMode}
             displayMode={displayMode}
             onPinnedChatsToggle={handlePinningChatsToggle}
+            isScreenContextEnabled={isScreenContextEnabled}
+            onScreenContextToggle={handleScreenContextToggle}
           />
         </ChatbotHeader>
         <Divider />

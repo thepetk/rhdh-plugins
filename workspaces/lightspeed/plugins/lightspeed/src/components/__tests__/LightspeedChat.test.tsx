@@ -110,6 +110,21 @@ jest.mock('../../hooks/useSortSettings', () => ({
   }),
 }));
 
+jest.mock(
+  '@red-hat-developer-hub/backstage-plugin-lightspeed-screen-context',
+  () => ({
+    useScreenContextSettings: jest.fn().mockReturnValue({
+      isScreenContextEnabled: false,
+      handleScreenContextToggle: jest.fn(),
+    }),
+    useScreenCaptureBuffer: jest.fn().mockReturnValue({
+      screenshots: [],
+      isCapturing: false,
+      captureError: null,
+    }),
+  }),
+);
+
 jest.mock('@patternfly/chatbot', () => {
   const actual = jest.requireActual('@patternfly/chatbot');
   return {

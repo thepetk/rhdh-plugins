@@ -47,7 +47,7 @@ export async function createRouter(
   const { logger, config, httpAuth, userInfo, permissions } = options;
 
   const router = Router();
-  router.use(express.json());
+  router.use(express.json({ limit: '10mb' }));
 
   const port = config.getOptionalNumber('lightspeed.servicePort') ?? 8080;
   const system_prompt = config.getOptionalString('lightspeed.systemPrompt');
@@ -186,6 +186,12 @@ export async function createRouter(
         const user_id = userEntity.userEntityRef;
 
         logger.info(`/v1/query receives call from user: ${user_id}`);
+
+        if (request.body.attachments?.length) {
+          logger.info(
+            `/v1/query includes ${request.body.attachments.length} attachment(s): ${request.body.attachments.map((a: { attachment_type: string }) => a.attachment_type).join(', ')}`,
+          );
+        }
 
         await authorizer.authorizeUser(
           lightspeedChatCreatePermission,

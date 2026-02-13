@@ -213,6 +213,14 @@ export const lightspeedMessages = {
   'settings.pinned.enabled.description': 'Pinned chats are currently enabled',
   'settings.pinned.disabled.description': 'Pinned chats are currently disabled',
 
+  // Screen context settings
+  'settings.screenContext.enable': 'Enable screen context',
+  'settings.screenContext.disable': 'Disable screen context',
+  'settings.screenContext.enabled.description':
+    'Screenshots of the current page will be shared with the AI',
+  'settings.screenContext.disabled.description':
+    'Screen context sharing is currently disabled',
+
   // Tool calling
   'toolCall.header': 'Tool response: {{toolName}}',
   'toolCall.thinking': 'Thought for {{seconds}} seconds',

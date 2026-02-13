@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
-import React from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
 
 import { useApi } from '@backstage/core-plugin-api';
 
@@ -73,9 +79,10 @@ export type UseConversationMessagesReturn = {
   handleInputPrompt: (
     prompt: string,
     attachments?: Attachment[],
+    apiPrompt?: string,
   ) => Promise<void>;
   conversations: Conversations;
-  scrollToBottomRef: React.RefObject<ScrollContainerHandle | null>;
+  scrollToBottomRef: RefObject<ScrollContainerHandle | null>;
   data?: BaseMessage[] | undefined;
   error: Error | null;
   isPending: boolean;
@@ -105,25 +112,25 @@ export const useConversationMessages = (
   onStart?: (conversation_id: string) => void,
 ): UseConversationMessagesReturn => {
   const { mutateAsync: createMessage } = useCreateConversationMessage();
-  const scrollToBottomRef = React.useRef<ScrollContainerHandle>(null);
+  const scrollToBottomRef = useRef<ScrollContainerHandle>(null);
 
   const [currentConversation, setCurrentConversation] =
-    React.useState(conversationId);
-  const [conversations, setConversations] = React.useState<Conversations>({
+    useState(conversationId);
+  const [conversations, setConversations] = useState<Conversations>({
     [currentConversation]: [],
   });
-  const streamingConversations = React.useRef<Conversations>({
+  const streamingConversations = useRef<Conversations>({
     [currentConversation]: [],
   });
 
   // Track pending tool calls during streaming
-  const pendingToolCalls = React.useRef<{ [id: number]: ToolCall }>({});
+  const pendingToolCalls = useRef<{ [id: number]: ToolCall }>({});
 
   // Cache tool calls by conversation ID and message index to persist across refetches
   // Key format: `${conversationId}-${messageIndex}`
-  const toolCallsCache = React.useRef<{ [key: string]: ToolCall[] }>({});
+  const toolCallsCache = useRef<{ [key: string]: ToolCall[] }>({});
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (currentConversation !== conversationId) {
       setCurrentConversation(conversationId);
       setConversations(prev => {
@@ -140,7 +147,7 @@ export const useConversationMessages = (
   const { data: conversationsData = [], ...queryProps } =
     useFetchConversationMessages(currentConversation);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       !Array.isArray(conversationsData) ||
       (conversationsData.length === 0 &&
@@ -212,8 +219,12 @@ export const useConversationMessages = (
     streamingConversations,
   ]);
 
-  const handleInputPrompt = React.useCallback(
-    async (prompt: string, attachments: Attachment[] = []) => {
+  const handleInputPrompt = useCallback(
+    async (
+      prompt: string,
+      attachments: Attachment[] = [],
+      apiPrompt?: string,
+    ) => {
       let newConversationId = '';
 
       const conversationTuple = [
@@ -255,7 +266,7 @@ export const useConversationMessages = (
 
       try {
         const reader = await createMessage({
-          prompt,
+          prompt: apiPrompt || prompt,
           selectedModel,
           selectedProvider,
           currentConversation,

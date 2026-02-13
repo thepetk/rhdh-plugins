@@ -48,6 +48,8 @@ type LightspeedChatBoxHeaderProps = {
   models: { label: string; value: string; provider: string }[];
   isPinningChatsEnabled: boolean;
   onPinnedChatsToggle: (state: boolean) => void;
+  isScreenContextEnabled: boolean;
+  onScreenContextToggle: (state: boolean) => void;
   isModelSelectorDisabled?: boolean;
   setDisplayMode: (mode: ChatbotDisplayMode) => void;
 };
@@ -81,6 +83,8 @@ export const LightspeedChatBoxHeader = ({
   models,
   isPinningChatsEnabled,
   onPinnedChatsToggle,
+  isScreenContextEnabled,
+  onScreenContextToggle,
   isModelSelectorDisabled = false,
   setDisplayMode,
 }: LightspeedChatBoxHeaderProps) => {
@@ -122,6 +126,10 @@ export const LightspeedChatBoxHeader = ({
 
   const handlePinningChatsToggle = (state: boolean) => {
     onPinnedChatsToggle(state);
+  };
+
+  const handleScreenContextToggle = (state: boolean) => {
+    onScreenContextToggle(state);
   };
 
   const handleDockedToWindow = () => {
@@ -241,6 +249,32 @@ export const LightspeedChatBoxHeader = ({
                 onClick={() => handlePinningChatsToggle(true)}
               >
                 {t('settings.pinned.enable')}
+              </DropdownItem>
+            )}
+          </DropdownList>
+        </DropdownGroup>
+        <Divider />
+        <DropdownGroup>
+          <DropdownList>
+            {isScreenContextEnabled ? (
+              <DropdownItem
+                value="disableScreenContext"
+                key="disableScreenContext"
+                icon={<ToggleOnOutlinedIcon sx={{ marginTop: '8px' }} />}
+                description={t('settings.screenContext.enabled.description')}
+                onClick={() => handleScreenContextToggle(false)}
+              >
+                {t('settings.screenContext.disable')}
+              </DropdownItem>
+            ) : (
+              <DropdownItem
+                value="enableScreenContext"
+                key="enableScreenContext"
+                icon={<ToggleOffOutlinedIcon sx={{ marginTop: '8px' }} />}
+                description={t('settings.screenContext.disabled.description')}
+                onClick={() => handleScreenContextToggle(true)}
+              >
+                {t('settings.screenContext.enable')}
               </DropdownItem>
             )}
           </DropdownList>
