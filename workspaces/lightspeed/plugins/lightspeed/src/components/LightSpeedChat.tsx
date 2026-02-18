@@ -92,7 +92,6 @@ import {
   getFootnoteProps,
   SortOption,
 } from '../utils/lightspeed-chatbox-utils';
-import { buildScreenContextPrompt } from '../utils/screen-context-utils';
 import Attachment from './Attachment';
 import { useFileAttachmentContext } from './AttachmentContext';
 import { DeleteModal } from './DeleteModal';
@@ -335,11 +334,10 @@ export const LightspeedChat = ({
     );
 
     const fileAttachments = getAttachments(fileContents);
-    const apiPrompt = isScreenContextEnabled
-      ? buildScreenContextPrompt(message.toString(), screenshots)
-      : undefined;
+    const screenAttachments = isScreenContextEnabled ? screenshots : [];
+    const allAttachments = [...fileAttachments, ...screenAttachments];
 
-    handleInputPrompt(message.toString(), fileAttachments, apiPrompt);
+    handleInputPrompt(message.toString(), allAttachments);
     setIsSendButtonDisabled(true);
     setFileContents([]);
     setDraftMessage('');
