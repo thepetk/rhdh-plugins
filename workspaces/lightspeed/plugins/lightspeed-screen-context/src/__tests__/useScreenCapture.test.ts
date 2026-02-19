@@ -14,29 +14,14 @@
  * limitations under the License.
  */
 
-import html2canvas from 'html2canvas';
-
 import { act, renderHook, waitFor } from '@testing-library/react';
 
 import { useScreenCapture } from '../hooks/useScreenCapture';
 
-jest.mock('html2canvas');
-const mockHtml2canvas = html2canvas as jest.MockedFunction<typeof html2canvas>;
-
-function createMockCanvas(width: number, height: number): HTMLCanvasElement {
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  // jsdom doesn't support real canvas rendering, so mock toDataURL
-  canvas.toDataURL = jest
-    .fn()
-    .mockReturnValue('data:image/png;base64,dGVzdA==');
-  return canvas;
-}
-
 describe('useScreenCapture', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    document.title = 'Test Page';
+    document.body.innerHTML = '';
   });
 
   it('should initialize with default state', () => {
@@ -44,176 +29,283 @@ describe('useScreenCapture', () => {
 
     expect(result.current.isCapturing).toBe(false);
     expect(result.current.captureError).toBeNull();
-    expect(typeof result.current.captureScreenshot).toBe('function');
+    expect(typeof result.current.captureContext).toBe('function');
   });
 
-  it('should capture a screenshot and return a ScreenContextAttachment', async () => {
-    const mockCanvas = createMockCanvas(800, 600);
-    mockHtml2canvas.mockResolvedValue(mockCanvas);
+  it('should return a ScreenContextAttachment with correct shape', async () => {
+    document.body.innerHTML = '<h1>Hello World</h1><p>Some content</p>';
 
     const { result } = renderHook(() => useScreenCapture());
 
-    let screenshot: any;
+    let attachment: any;
     await act(async () => {
-      screenshot = await result.current.captureScreenshot();
+      attachment = await result.current.captureContext();
     });
 
-    expect(screenshot).not.toBeNull();
-    expect(screenshot.attachment_type).toBe('screen_context');
-    expect(screenshot.content_type).toBe('image/png');
-    expect(typeof screenshot.content).toBe('string');
-    // Should not contain the data URI prefix
-    expect(screenshot.content).not.toContain('data:image/png;base64,');
+    expect(attachment).not.toBeNull();
+    expect(attachment.attachment_type).toBe('dom-context');
+    expect(attachment.content_type).toBe('text/plain');
+    expect(typeof attachment.content).toBe('string');
   });
 
-  it('should call html2canvas with correct options', async () => {
-    const mockCanvas = createMockCanvas(800, 600);
-    mockHtml2canvas.mockResolvedValue(mockCanvas);
+  it('should include page title and URL in content', async () => {
+    document.title = 'My Backstage App';
+    document.body.innerHTML = '<p>Content here</p>';
 
     const { result } = renderHook(() => useScreenCapture());
 
+    let attachment: any;
     await act(async () => {
-      await result.current.captureScreenshot();
+      attachment = await result.current.captureContext();
     });
 
-    expect(mockHtml2canvas).toHaveBeenCalledWith(
-      document.body,
-      expect.objectContaining({
-        scale: 0.5,
-        logging: false,
-        useCORS: true,
-        allowTaint: false,
-        ignoreElements: expect.any(Function),
-      }),
+    expect(attachment.content).toContain('Page: My Backstage App');
+  });
+
+  it('should extract heading text with markdown prefix', async () => {
+    document.body.innerHTML =
+      '<h1>Main Title</h1><h2>Subtitle</h2><h3>Section</h3>';
+
+    const { result } = renderHook(() => useScreenCapture());
+
+    let attachment: any;
+    await act(async () => {
+      attachment = await result.current.captureContext();
+    });
+
+    expect(attachment.content).toContain('# Main Title');
+    expect(attachment.content).toContain('## Subtitle');
+    expect(attachment.content).toContain('### Section');
+  });
+
+  it('should extract paragraph text', async () => {
+    document.body.innerHTML = '<p>This is a paragraph.</p>';
+
+    const { result } = renderHook(() => useScreenCapture());
+
+    let attachment: any;
+    await act(async () => {
+      attachment = await result.current.captureContext();
+    });
+
+    expect(attachment.content).toContain('This is a paragraph.');
+  });
+
+  it('should format buttons as [Button: label]', async () => {
+    document.body.innerHTML =
+      '<button>Click me</button><button aria-label="Close dialog"></button>';
+
+    const { result } = renderHook(() => useScreenCapture());
+
+    let attachment: any;
+    await act(async () => {
+      attachment = await result.current.captureContext();
+    });
+
+    expect(attachment.content).toContain('[Button: Click me]');
+    expect(attachment.content).toContain('[Button: Close dialog]');
+  });
+
+  it('should format links as [Link: text → href]', async () => {
+    document.body.innerHTML = '<a href="/catalog">Go to Catalog</a>';
+
+    const { result } = renderHook(() => useScreenCapture());
+
+    let attachment: any;
+    await act(async () => {
+      attachment = await result.current.captureContext();
+    });
+
+    expect(attachment.content).toContain('[Link: Go to Catalog → /catalog]');
+  });
+
+  it('should format text inputs with aria-label', async () => {
+    document.body.innerHTML =
+      '<input type="text" aria-label="Search components" />';
+
+    const { result } = renderHook(() => useScreenCapture());
+
+    let attachment: any;
+    await act(async () => {
+      attachment = await result.current.captureContext();
+    });
+
+    expect(attachment.content).toContain('[Input(text): Search components]');
+  });
+
+  it('should redact password input values', async () => {
+    document.body.innerHTML =
+      '<input type="password" aria-label="Password" value="secret" />';
+
+    const { result } = renderHook(() => useScreenCapture());
+
+    let attachment: any;
+    await act(async () => {
+      attachment = await result.current.captureContext();
+    });
+
+    expect(attachment.content).not.toContain('secret');
+    expect(attachment.content).toContain('***');
+  });
+
+  it('should format images with alt text', async () => {
+    document.body.innerHTML = '<img src="/logo.png" alt="Company Logo" />';
+
+    const { result } = renderHook(() => useScreenCapture());
+
+    let attachment: any;
+    await act(async () => {
+      attachment = await result.current.captureContext();
+    });
+
+    expect(attachment.content).toContain('[Image: Company Logo]');
+  });
+
+  it('should format list items with bullet prefix', async () => {
+    document.body.innerHTML =
+      '<ul><li>First item</li><li>Second item</li></ul>';
+
+    const { result } = renderHook(() => useScreenCapture());
+
+    let attachment: any;
+    await act(async () => {
+      attachment = await result.current.captureContext();
+    });
+
+    expect(attachment.content).toContain('- First item');
+    expect(attachment.content).toContain('- Second item');
+  });
+
+  it('should format tables as markdown tables', async () => {
+    document.body.innerHTML = `
+      <table>
+        <tr><th>Name</th><th>Kind</th></tr>
+        <tr><td>my-service</td><td>Component</td></tr>
+      </table>
+    `;
+
+    const { result } = renderHook(() => useScreenCapture());
+
+    let attachment: any;
+    await act(async () => {
+      attachment = await result.current.captureContext();
+    });
+
+    expect(attachment.content).toContain('| Name | Kind |');
+    expect(attachment.content).toContain('| my-service | Component |');
+  });
+
+  it('should exclude elements matching ignoreSelector', async () => {
+    document.body.innerHTML = `
+      <h1>Main Content</h1>
+      <div class="pf-chatbot"><p>Chat UI text</p></div>
+    `;
+
+    const { result } = renderHook(() =>
+      useScreenCapture({ ignoreSelector: '.pf-chatbot' }),
     );
+
+    let attachment: any;
+    await act(async () => {
+      attachment = await result.current.captureContext();
+    });
+
+    expect(attachment.content).toContain('Main Content');
+    expect(attachment.content).not.toContain('Chat UI text');
   });
 
   it('should set isCapturing to false after capture completes', async () => {
-    const mockCanvas = createMockCanvas(800, 600);
-    mockHtml2canvas.mockResolvedValue(mockCanvas);
-
     const { result } = renderHook(() => useScreenCapture());
 
     await act(async () => {
-      await result.current.captureScreenshot();
+      await result.current.captureContext();
     });
 
     expect(result.current.isCapturing).toBe(false);
+    expect(result.current.captureError).toBeNull();
   });
 
-  it('should return null and set captureError on failure', async () => {
-    mockHtml2canvas.mockRejectedValue(new Error('Canvas rendering failed'));
-
+  it('should set captureError and return null when extraction throws', async () => {
     const { result } = renderHook(() => useScreenCapture());
 
-    let screenshot: any;
-    await act(async () => {
-      screenshot = await result.current.captureScreenshot();
+    // Override document.body on the instance so extractDOMContext throws.
+    // Use configurable:true so we can delete it afterwards, falling back to the
+    // prototype getter and leaving jsdom in a clean state.
+    Object.defineProperty(document, 'body', {
+      get() {
+        throw new Error('DOM access error');
+      },
+      configurable: true,
     });
 
-    expect(screenshot).toBeNull();
+    let attachment: any;
+    try {
+      await act(async () => {
+        attachment = await result.current.captureContext();
+      });
+    } finally {
+      delete (document as any).body;
+    }
+
+    expect(attachment).toBeNull();
 
     await waitFor(() => {
-      expect(result.current.captureError).toBe('Canvas rendering failed');
+      expect(result.current.captureError).toBe('DOM access error');
     });
     expect(result.current.isCapturing).toBe(false);
   });
 
-  it('should handle non-Error exceptions', async () => {
-    mockHtml2canvas.mockRejectedValue('some string error');
-
+  it('should clear previous error on a successful capture', async () => {
     const { result } = renderHook(() => useScreenCapture());
 
-    let screenshot: any;
-    await act(async () => {
-      screenshot = await result.current.captureScreenshot();
+    // Force a failure first
+    Object.defineProperty(document, 'body', {
+      get() {
+        throw new Error('First failure');
+      },
+      configurable: true,
     });
 
-    expect(screenshot).toBeNull();
-
-    await waitFor(() => {
-      expect(result.current.captureError).toBe(
-        'Unknown screenshot capture error',
-      );
-    });
-  });
-
-  it('should use custom options when provided', async () => {
-    const mockCanvas = createMockCanvas(800, 600);
-    mockHtml2canvas.mockResolvedValue(mockCanvas);
-
-    const customOptions = { scale: 1.0, logging: true };
-    const { result } = renderHook(() => useScreenCapture(customOptions));
-
-    await act(async () => {
-      await result.current.captureScreenshot();
-    });
-
-    expect(mockHtml2canvas).toHaveBeenCalledWith(
-      document.body,
-      expect.objectContaining({
-        scale: 1.0,
-        logging: true,
-      }),
-    );
-  });
-
-  it('should pass ignoreElements function that matches the selector', async () => {
-    const mockCanvas = createMockCanvas(800, 600);
-    mockHtml2canvas.mockResolvedValue(mockCanvas);
-
-    const { result } = renderHook(() =>
-      useScreenCapture({ ignoreSelector: '.my-chatbot' }),
-    );
-
-    await act(async () => {
-      await result.current.captureScreenshot();
-    });
-
-    const call = mockHtml2canvas.mock.calls[0];
-    const options = call[1] as any;
-    const ignoreElements = options.ignoreElements;
-
-    const matchingElement = document.createElement('div');
-    matchingElement.className = 'my-chatbot';
-    document.body.appendChild(matchingElement);
-
-    expect(ignoreElements(matchingElement)).toBe(true);
-
-    const nonMatchingElement = document.createElement('div');
-    nonMatchingElement.className = 'other-element';
-    document.body.appendChild(nonMatchingElement);
-
-    expect(ignoreElements(nonMatchingElement)).toBe(false);
-
-    document.body.removeChild(matchingElement);
-    document.body.removeChild(nonMatchingElement);
-  });
-
-  it('should clear previous error on new capture attempt', async () => {
-    // First capture fails
-    mockHtml2canvas.mockRejectedValueOnce(new Error('First failure'));
-
-    const { result } = renderHook(() => useScreenCapture());
-
-    await act(async () => {
-      await result.current.captureScreenshot();
-    });
+    try {
+      await act(async () => {
+        await result.current.captureContext();
+      });
+    } finally {
+      delete (document as any).body;
+    }
 
     await waitFor(() => {
       expect(result.current.captureError).toBe('First failure');
     });
 
-    // Second capture succeeds
-    const mockCanvas = createMockCanvas(800, 600);
-    mockHtml2canvas.mockResolvedValueOnce(mockCanvas);
-
+    // Successful capture should clear the error
     await act(async () => {
-      await result.current.captureScreenshot();
+      await result.current.captureContext();
     });
 
     await waitFor(() => {
       expect(result.current.captureError).toBeNull();
     });
+  });
+
+  it('should use custom maxDepth option', async () => {
+    // Deep nesting beyond maxDepth=1 should not reach inner content
+    document.body.innerHTML = `
+      <div>
+        <div>
+          <p>Deep paragraph</p>
+        </div>
+      </div>
+    `;
+
+    const { result } = renderHook(() => useScreenCapture({ maxDepth: 1 }));
+
+    let attachment: any;
+    await act(async () => {
+      attachment = await result.current.captureContext();
+    });
+
+    // With maxDepth=1 the <p> at depth 2+ won't be reached
+    expect(attachment.content).not.toContain('Deep paragraph');
   });
 });

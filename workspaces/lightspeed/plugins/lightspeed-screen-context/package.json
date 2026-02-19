@@ -33,8 +33,7 @@
     "postpack": "backstage-cli package postpack"
   },
   "dependencies": {
-    "@backstage/core-plugin-api": "^1.12.2",
-    "html2canvas": "^1.4.1"
+    "@backstage/core-plugin-api": "^1.12.2"
   },
   "peerDependencies": {
     "react": "^16.13.1 || ^17.0.0 || ^18.0.0"

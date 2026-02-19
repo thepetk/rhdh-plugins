@@ -24,13 +24,13 @@ import {
 import { useScreenCapture } from './useScreenCapture';
 
 const DEFAULT_INTERVAL_MS = 30000;
-const DEFAULT_MAX_SCREENSHOTS = 5;
+const DEFAULT_MAX_SNAPSHOTS = 5;
 
 /**
- * Hook that continuously captures screenshots on a timer and maintains a rolling buffer.
+ * Hook that continuously captures DOM context on a timer and maintains a rolling buffer.
  *
  * @param options - Configuration including enabled state, interval, and buffer size
- * @returns Object with screenshots buffer, isCapturing state, and captureError
+ * @returns Object with snapshots buffer, isCapturing state, and captureError
  */
 export const useScreenCaptureBuffer = (
   options: UseScreenCaptureBufferOptions,
@@ -38,30 +38,28 @@ export const useScreenCaptureBuffer = (
   const {
     enabled,
     intervalMs = DEFAULT_INTERVAL_MS,
-    maxScreenshots = DEFAULT_MAX_SCREENSHOTS,
+    maxSnapshots = DEFAULT_MAX_SNAPSHOTS,
     ...captureOptions
   } = options;
 
-  const { captureScreenshot, isCapturing, captureError } =
+  const { captureContext, isCapturing, captureError } =
     useScreenCapture(captureOptions);
   const bufferRef = useRef<ScreenContextAttachment[]>([]);
-  const [screenshots, setScreenshots] = useState<ScreenContextAttachment[]>([]);
+  const [snapshots, setSnapshots] = useState<ScreenContextAttachment[]>([]);
 
   useEffect(() => {
     if (!enabled) {
       bufferRef.current = [];
-      setScreenshots([]);
+      setSnapshots([]);
       return undefined;
     }
 
     const capture = async () => {
-      const screenshot = await captureScreenshot();
-      if (screenshot) {
-        const updated = [...bufferRef.current, screenshot].slice(
-          -maxScreenshots,
-        );
+      const snapshot = await captureContext();
+      if (snapshot) {
+        const updated = [...bufferRef.current, snapshot].slice(-maxSnapshots);
         bufferRef.current = updated;
-        setScreenshots(updated);
+        setSnapshots(updated);
       }
     };
 
@@ -74,10 +72,10 @@ export const useScreenCaptureBuffer = (
       clearInterval(intervalId);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, intervalMs, maxScreenshots]);
+  }, [enabled, intervalMs, maxSnapshots]);
 
   return {
-    screenshots,
+    snapshots,
     isCapturing,
     captureError,
   };

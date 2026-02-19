@@ -15,37 +15,34 @@
  */
 
 /**
- * A screenshot attachment ready to be sent via the existing attachment mechanism.
+ * A DOM context attachment ready to be sent via the existing attachment mechanism.
+ * Contains a structured text representation of the current page extracted from the DOM.
  * Maps directly to the Attachment type in the lightspeed plugin.
  */
 export interface ScreenContextAttachment {
-  attachment_type: 'screen_context';
-  content_type: 'image/png';
+  attachment_type: 'dom-context';
+  content_type: 'text/plain';
   content: string;
 }
 
 /**
- * Options for controlling the screenshot capture behavior.
+ * Options for controlling the DOM context extraction behavior.
  */
 export interface CaptureOptions {
-  /** Scale factor for the rendered canvas (default: 0.5 for performance) */
-  scale?: number;
-  /** Maximum width in pixels (default: 1920) */
-  maxWidth?: number;
-  /** Maximum height in pixels (default: 1080) */
-  maxHeight?: number;
-  /** Whether to enable html2canvas logging (default: false) */
-  logging?: boolean;
-  /** CSS selector for elements to exclude from the screenshot */
+  /** CSS selector for elements to exclude from extraction */
   ignoreSelector?: string;
+  /** Maximum DOM traversal depth (default: 30) */
+  maxDepth?: number;
+  /** Whether to include hidden/invisible elements (default: false) */
+  includeHidden?: boolean;
 }
 
 /**
  * Return type of the useScreenCapture hook.
  */
 export interface UseScreenCaptureReturn {
-  /** Capture a screenshot and return it as a ScreenContextAttachment. Returns null on failure. */
-  captureScreenshot: () => Promise<ScreenContextAttachment | null>;
+  /** Extract DOM context and return it as a ScreenContextAttachment. Returns null on failure. */
+  captureContext: () => Promise<ScreenContextAttachment | null>;
   /** Whether a capture is currently in progress */
   isCapturing: boolean;
   /** Last capture error, if any */
@@ -60,16 +57,16 @@ export interface UseScreenCaptureBufferOptions extends CaptureOptions {
   enabled: boolean;
   /** Interval in milliseconds between captures (default: 30000) */
   intervalMs?: number;
-  /** Maximum number of screenshots to keep in the buffer (default: 5) */
-  maxScreenshots?: number;
+  /** Maximum number of snapshots to keep in the buffer (default: 5) */
+  maxSnapshots?: number;
 }
 
 /**
  * Return type of the useScreenCaptureBuffer hook.
  */
 export interface UseScreenCaptureBufferReturn {
-  /** Rolling buffer of captured screenshots (most recent last) */
-  screenshots: ScreenContextAttachment[];
+  /** Rolling buffer of captured DOM snapshots (most recent last) */
+  snapshots: ScreenContextAttachment[];
   /** Whether a capture is currently in progress */
   isCapturing: boolean;
   /** Last capture error, if any */
