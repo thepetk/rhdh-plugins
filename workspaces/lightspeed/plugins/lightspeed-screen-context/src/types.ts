@@ -20,7 +20,7 @@
  * Maps directly to the Attachment type in the lightspeed plugin.
  */
 export interface ScreenContextAttachment {
-  attachment_type: 'dom-context';
+  attachment_type: 'api object';
   content_type: 'text/plain';
   content: string;
 }

@@ -266,7 +266,7 @@ export const useScreenCapture = (
       try {
         const content = extractDOMContext(mergedOptions);
         return {
-          attachment_type: 'dom-context',
+          attachment_type: 'api object',
           content_type: 'text/plain',
           content,
         };

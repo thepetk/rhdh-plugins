@@ -202,7 +202,7 @@ export const LightspeedChat = ({
 
   const { isScreenContextEnabled, handleScreenContextToggle } =
     useScreenContextSettings(user);
-  const { screenshots } = useScreenCaptureBuffer({
+  const { snapshots } = useScreenCaptureBuffer({
     enabled: isScreenContextEnabled,
   });
 
@@ -334,7 +334,7 @@ export const LightspeedChat = ({
     );
 
     const fileAttachments = getAttachments(fileContents);
-    const screenAttachments = isScreenContextEnabled ? screenshots : [];
+    const screenAttachments = isScreenContextEnabled ? snapshots : [];
     const allAttachments = [...fileAttachments, ...screenAttachments];
 
     handleInputPrompt(message.toString(), allAttachments);

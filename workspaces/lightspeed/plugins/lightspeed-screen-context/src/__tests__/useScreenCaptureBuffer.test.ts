@@ -29,7 +29,7 @@ jest.mock('../hooks/useScreenCapture', () => ({
 }));
 
 const mockSnapshot = {
-  attachment_type: 'dom-context' as const,
+  attachment_type: 'api object' as const,
   content_type: 'text/plain' as const,
   content: 'Page: Test\nURL: http://localhost\n\nContent',
 };
@@ -65,7 +65,7 @@ describe('useScreenCaptureBuffer', () => {
       expect(result.current.snapshots).toHaveLength(1);
     });
 
-    expect(result.current.snapshots[0].attachment_type).toBe('dom-context');
+    expect(result.current.snapshots[0].attachment_type).toBe('api object');
     expect(result.current.snapshots[0].content_type).toBe('text/plain');
   });
 

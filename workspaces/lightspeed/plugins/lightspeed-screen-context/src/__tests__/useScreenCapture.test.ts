@@ -43,7 +43,7 @@ describe('useScreenCapture', () => {
     });
 
     expect(attachment).not.toBeNull();
-    expect(attachment.attachment_type).toBe('dom-context');
+    expect(attachment.attachment_type).toBe('api object');
     expect(attachment.content_type).toBe('text/plain');
     expect(typeof attachment.content).toBe('string');
   });
