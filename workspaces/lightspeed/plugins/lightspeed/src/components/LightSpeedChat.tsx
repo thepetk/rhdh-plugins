@@ -367,12 +367,7 @@ export const LightspeedChat = ({
     // from the user's screen along with the message.
 
     // TODO: Are we doing this for all the messages?
-    handleInputPrompt(
-      message.toString(),
-      allAttachments,
-      undefined,
-      isScreenContextEnabled,
-    );
+    handleInputPrompt(message.toString(), allAttachments);
     setIsSendButtonDisabled(true);
     setFileContents([]);
     setDraftMessage('');

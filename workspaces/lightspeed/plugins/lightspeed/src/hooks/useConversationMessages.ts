@@ -80,10 +80,6 @@ export type UseConversationMessagesReturn = {
     prompt: string,
     attachments?: Attachment[],
     apiPrompt?: string,
-    // DEEP_CONTEXT_RETRIEVAL:
-    // if true, the API call is routed to /v1/screen-context-query so the
-    // backend can distinguish screen-context-enriched queries.
-    useScreenContext?: boolean,
   ) => Promise<void>;
   conversations: Conversations;
   scrollToBottomRef: RefObject<ScrollContainerHandle | null>;
@@ -228,12 +224,6 @@ export const useConversationMessages = (
       prompt: string,
       attachments: Attachment[] = [],
       apiPrompt?: string,
-      // DEEP_CONTEXT_RETRIEVAL:
-      // threaded from LightSpeedChat.sendMessage
-      // we now use useCreateConversationMessage
-      // and then LightspeedApiClient.createMessage
-      // to select the correct endpoint.
-      useScreenContext?: boolean,
     ) => {
       let newConversationId = '';
 
@@ -275,16 +265,12 @@ export const useConversationMessages = (
       let buffer = '';
 
       try {
-        // DEEP_CONTEXT_RETRIEVAL:
-        // useScreenContext is forwarded to LightspeedApiClient.createMessage
-        // so it can choose between /v1/query and /v1/screen-context-query.
         const reader = await createMessage({
           prompt: apiPrompt || prompt,
           selectedModel,
           selectedProvider,
           currentConversation,
           attachments,
-          useScreenContext,
         });
 
         const decoder = new TextDecoder('utf-8');

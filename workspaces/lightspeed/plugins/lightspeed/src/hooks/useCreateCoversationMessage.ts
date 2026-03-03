@@ -27,9 +27,6 @@ type CreateMessageVariables = {
   selectedProvider: string;
   currentConversation: string;
   attachments: Attachment[];
-  // When true, routes the API call to /v1/screen-context-query instead of
-  // /v1/query. Threaded from LightSpeedChat → handleInputPrompt → here.
-  useScreenContext?: boolean;
 };
 
 export const useCreateConversationMessage = (): UseMutationResult<
@@ -46,11 +43,6 @@ export const useCreateConversationMessage = (): UseMutationResult<
       selectedProvider,
       currentConversation,
       attachments,
-      // DEEP_CONTEXT_RETRIEVAL:
-      // we're passing the flag all the way down to the API
-      // call so the backend can distinguish between
-      // screen-context queries and plain ones.
-      useScreenContext,
     }: CreateMessageVariables) => {
       if (!currentConversation) {
         throw new Error('Failed to generate AI response');
@@ -62,8 +54,6 @@ export const useCreateConversationMessage = (): UseMutationResult<
         selectedProvider,
         currentConversation,
         attachments,
-        // DEEP_CONTEXT_RETRIEVAL: pass the flag down to the API call
-        useScreenContext,
       );
     },
     onError: error => {
