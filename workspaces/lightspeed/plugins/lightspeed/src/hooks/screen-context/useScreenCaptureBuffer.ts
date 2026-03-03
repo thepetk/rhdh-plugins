@@ -29,8 +29,9 @@ const DEFAULT_MAX_SCREENSHOTS = 5;
 /**
  * Hook that continuously captures screenshots on a timer and maintains a rolling buffer.
  *
- * @param options - Configuration including enabled state, interval, and buffer size
- * @returns Object with screenshots buffer, isCapturing state, and captureError
+ * - Keeps only the most recent `maxScreenshots`
+ * - Prevents overlapping captures (async + setInterval race)
+ * - Drops stale/late results if a newer capture tick started after it
  */
 export const useScreenCaptureBuffer = (
   options: UseScreenCaptureBufferOptions,
@@ -44,37 +45,55 @@ export const useScreenCaptureBuffer = (
 
   const { captureScreenshot, isCapturing, captureError } =
     useScreenCapture(captureOptions);
+
   const bufferRef = useRef<ScreenContextAttachment[]>([]);
   const [screenshots, setScreenshots] = useState<ScreenContextAttachment[]>([]);
+
+  // Monotonic sequence used to drop stale/late async results.
+  const latestSeqRef = useRef(0);
 
   useEffect(() => {
     if (!enabled) {
       bufferRef.current = [];
       setScreenshots([]);
-      return undefined;
+      return () => {};
     }
 
-    const capture = async () => {
-      const screenshot = await captureScreenshot();
-      if (screenshot) {
-        const updated = [...bufferRef.current, screenshot].slice(
-          -maxScreenshots,
-        );
-        bufferRef.current = updated;
-        setScreenshots(updated);
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    const tick = async () => {
+      const seq = ++latestSeqRef.current;
+
+      try {
+        const screenshot = await captureScreenshot();
+
+        // If a newer tick started while we were awaiting, ignore this result.
+        if (cancelled || seq !== latestSeqRef.current) return;
+
+        if (screenshot) {
+          const updated = [...bufferRef.current, screenshot].slice(
+            -maxScreenshots,
+          );
+          bufferRef.current = updated;
+          setScreenshots(updated);
+        }
+      } finally {
+        if (!cancelled) {
+          // Schedule next run *after* this run finishes to avoid overlap.
+          timeoutId = setTimeout(tick, intervalMs);
+        }
       }
     };
 
-    // Capture immediately when enabled
-    capture();
-
-    const intervalId = setInterval(capture, intervalMs);
+    // Capture immediately when enabled.
+    void tick();
 
     return () => {
-      clearInterval(intervalId);
+      cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, intervalMs, maxScreenshots]);
+  }, [enabled, intervalMs, maxScreenshots, captureScreenshot]);
 
   return {
     screenshots,
