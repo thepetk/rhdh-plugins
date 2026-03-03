@@ -223,28 +223,30 @@ export async function createRouter(
         );
 
         if (!fetchResponse.ok) {
-          // Read the error body
-          const errorBody = await fetchResponse.json();
-          const errormsg = `Error from lightspeed-core server: ${errorBody.error?.message || errorBody?.detail?.cause || 'Unknown error'}`;
+          // The streaming endpoint may return SSE-formatted text even on error,
+          // so read as text first and attempt JSON parsing as a best-effort.
+          const errorText = await fetchResponse.text();
+          let errormsg: string;
+          try {
+            const errorBody = JSON.parse(errorText);
+            errormsg = `Error from lightspeed-core server: ${errorBody.error?.message || errorBody?.detail?.cause || 'Unknown error'}`;
+          } catch {
+            errormsg = `Error from lightspeed-core server: ${errorText}`;
+          }
           logger.error(errormsg);
-
-          // Return a 500 status for any upstream error
-          response.status(500).json({
-            error: errormsg,
-          });
+          return response.status(500).json({ error: errormsg });
         }
 
         // Pipe the response back to the original response
-        fetchResponse.body.pipe(response);
+        return fetchResponse.body.pipe(response);
       } catch (error) {
         const errormsg = `Error fetching completions from ${provider}: ${error}`;
         logger.error(errormsg);
 
         if (error instanceof NotAllowedError) {
-          response.status(403).json({ error: error.message });
-        } else {
-          response.status(500).json({ error: errormsg });
+          return response.status(403).json({ error: error.message });
         }
+        return response.status(500).json({ error: errormsg });
       }
     },
   );

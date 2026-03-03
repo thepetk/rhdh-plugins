@@ -23,7 +23,7 @@ import {
 } from './types';
 import { useScreenCapture } from './useScreenCapture';
 
-const DEFAULT_INTERVAL_MS = 30000;
+const DEFAULT_INTERVAL_MS = 5000;
 const DEFAULT_MAX_SCREENSHOTS = 5;
 
 /**
@@ -64,17 +64,29 @@ export const useScreenCaptureBuffer = (
 
     const tick = async () => {
       const seq = ++latestSeqRef.current;
+      const startedAt = Date.now();
 
       try {
         const screenshot = await captureScreenshot();
 
         // If a newer tick started while we were awaiting, ignore this result.
-        if (cancelled || seq !== latestSeqRef.current) return;
+        if (cancelled || seq !== latestSeqRef.current) {
+          // eslint-disable-next-line no-console
+          console.debug('[screen-buffer] dropped stale result', { seq });
+          return;
+        }
 
         if (screenshot) {
           const updated = [...bufferRef.current, screenshot].slice(
             -maxScreenshots,
           );
+          // eslint-disable-next-line no-console
+          console.debug('[screen-buffer] captured', {
+            seq,
+            dt_ms: Date.now() - startedAt,
+            approx_kb: Math.round((screenshot.content.length * 3) / 4 / 1024),
+            buffer_size: updated.length,
+          });
           bufferRef.current = updated;
           setScreenshots(updated);
         }
@@ -93,7 +105,11 @@ export const useScreenCaptureBuffer = (
       cancelled = true;
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [enabled, intervalMs, maxScreenshots, captureScreenshot]);
+    // captureScreenshot is intentionally excluded from deps: it is stable
+    // (useCallback + useMemo with primitive deps), and including it can cause
+    // the effect to teardown mid-capture and start a concurrent capture.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, intervalMs, maxScreenshots]);
 
   return {
     screenshots,

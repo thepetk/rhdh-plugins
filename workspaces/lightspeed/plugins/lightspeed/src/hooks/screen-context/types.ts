@@ -51,7 +51,7 @@ export interface CaptureOptions {
   maxWidth?: number;
   /** Maximum height in pixels (default: 1080) */
   maxHeight?: number;
-  /** Whether to enable html2canvas logging (default: false) */
+  /** Reserved for future use (default: false) */
   logging?: boolean;
   /** CSS selector for elements to exclude from the screenshot */
   ignoreSelector?: string;

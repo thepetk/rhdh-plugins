@@ -16,7 +16,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 
-import html2canvas from 'html2canvas';
+import { snapdom } from '@zumer/snapdom';
 
 import {
   CaptureOptions,
@@ -36,7 +36,7 @@ const DEFAULT_OPTIONS: CaptureOptions = {
 };
 
 /**
- * Hook that provides screenshot capture functionality using html2canvas.
+ * Hook that provides screenshot capture functionality using snapdom.
  * Captures the current viewport and returns a base64-encoded PNG as a ScreenContextAttachment.
  *
  * @param options - Configuration options for screenshot capture
@@ -67,31 +67,11 @@ export const useScreenCapture = (
       setCaptureError(null);
 
       try {
-        const canvas = await html2canvas(document.body, {
+        const canvas = await snapdom.toCanvas(document.body, {
           scale: mergedOptions.scale,
-          logging: mergedOptions.logging,
-          useCORS: true,
-          allowTaint: false,
-          ignoreElements: (element: Element) => {
-            if (mergedOptions.ignoreSelector) {
-              return element.matches(mergedOptions.ignoreSelector);
-            }
-            return false;
-          },
-          onclone: (clonedDoc: Document) => {
-            // html2canvas cannot parse the CSS color() function (e.g.
-            // color(display-p3 0.2 0.4 0.6)) used by PatternFly and other
-            // modern CSS. Replace every occurrence with 'transparent' in the
-            // cloned document so the capture doesn't throw.
-            clonedDoc.querySelectorAll('style').forEach(style => {
-              if (style.textContent) {
-                style.textContent = style.textContent.replace(
-                  /\bcolor\([^)]*\)/g,
-                  'transparent',
-                );
-              }
-            });
-          },
+          filter: mergedOptions.ignoreSelector
+            ? (el: Element) => !el.matches(mergedOptions.ignoreSelector!)
+            : undefined,
         });
 
         let finalCanvas = canvas;
