@@ -22,7 +22,7 @@ import {
   CaptureOptions,
   ScreenContextAttachment,
   UseScreenCaptureReturn,
-} from '../types';
+} from './types';
 
 const DEFAULT_OPTIONS: CaptureOptions = {
   scale: 0.5,

@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-export { lightspeedScreenContextPlugin } from './plugin';
-export {
-  useScreenContextSettings,
-  useScreenCapture,
-  useScreenCaptureBuffer,
-} from './hooks';
+export { useScreenContextSettings } from './useScreenContextSettings';
+export { useScreenCapture } from './useScreenCapture';
+export { useScreenCaptureBuffer } from './useScreenCaptureBuffer';
+export { extractReactTree } from './useReactComponentTree';
 export type {
   ScreenContextAttachment,
+  UIContextAttachment,
   CaptureOptions,
   UseScreenCaptureReturn,
   UseScreenCaptureBufferOptions,

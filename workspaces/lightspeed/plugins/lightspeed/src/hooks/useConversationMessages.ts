@@ -80,6 +80,7 @@ export type UseConversationMessagesReturn = {
     prompt: string,
     attachments?: Attachment[],
     apiPrompt?: string,
+    useScreenContext?: boolean,
   ) => Promise<void>;
   conversations: Conversations;
   scrollToBottomRef: RefObject<ScrollContainerHandle | null>;
@@ -224,6 +225,7 @@ export const useConversationMessages = (
       prompt: string,
       attachments: Attachment[] = [],
       apiPrompt?: string,
+      useScreenContext?: boolean,
     ) => {
       let newConversationId = '';
 
@@ -271,6 +273,7 @@ export const useConversationMessages = (
           selectedProvider,
           currentConversation,
           attachments,
+          useScreenContext,
         });
 
         const decoder = new TextDecoder('utf-8');

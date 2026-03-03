@@ -25,6 +25,15 @@ export interface ScreenContextAttachment {
 }
 
 /**
+ * A React component tree attachment serialised as JSON.
+ */
+export interface UIContextAttachment {
+  attachment_type: 'ui_context';
+  content_type: 'application/json';
+  content: string; // base64-encoded JSON
+}
+
+/**
  * Options for controlling the screenshot capture behavior.
  */
 export interface CaptureOptions {

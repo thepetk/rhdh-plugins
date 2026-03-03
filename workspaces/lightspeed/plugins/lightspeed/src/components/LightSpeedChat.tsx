@@ -64,12 +64,6 @@ import {
 } from '@patternfly/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
 
-// eslint-disable-next-line @backstage/no-mixed-plugin-imports
-import {
-  useScreenCaptureBuffer,
-  useScreenContextSettings,
-} from '@red-hat-developer-hub/backstage-plugin-lightspeed-screen-context';
-
 import { supportedFileTypes, TEMP_CONVERSATION_ID } from '../const';
 import {
   useBackstageUserIdentity,
@@ -81,6 +75,11 @@ import {
   usePinnedChatsSettings,
   useSortSettings,
 } from '../hooks';
+import {
+  extractReactTree,
+  useScreenCaptureBuffer,
+  useScreenContextSettings,
+} from '../hooks/screen-context';
 import { useLightspeedDrawerContext } from '../hooks/useLightspeedDrawerContext';
 import { useLightspeedUpdatePermission } from '../hooks/useLightspeedUpdatePermission';
 import { useTranslation } from '../hooks/useTranslation';
@@ -335,9 +334,21 @@ export const LightspeedChat = ({
 
     const fileAttachments = getAttachments(fileContents);
     const screenAttachments = isScreenContextEnabled ? screenshots : [];
-    const allAttachments = [...fileAttachments, ...screenAttachments];
+    const reactTreeAttachment = isScreenContextEnabled
+      ? extractReactTree()
+      : null;
+    const allAttachments = [
+      ...fileAttachments,
+      ...screenAttachments,
+      ...(reactTreeAttachment ? [reactTreeAttachment] : []),
+    ];
 
-    handleInputPrompt(message.toString(), allAttachments);
+    handleInputPrompt(
+      message.toString(),
+      allAttachments,
+      undefined,
+      isScreenContextEnabled,
+    );
     setIsSendButtonDisabled(true);
     setFileContents([]);
     setDraftMessage('');

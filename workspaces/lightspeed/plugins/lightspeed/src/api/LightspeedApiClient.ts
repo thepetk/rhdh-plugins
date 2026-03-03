@@ -57,10 +57,14 @@ export class LightspeedApiClient implements LightspeedAPI {
     selectedProvider: string,
     conversation_id: string,
     attachments: Attachment[],
+    useScreenContext = false,
   ) {
     const baseUrl = await this.getBaseUrl();
+    const endpoint = useScreenContext
+      ? '/v1/screen-context-query'
+      : '/v1/query';
 
-    const response = await this.fetchApi.fetch(`${baseUrl}/v1/query`, {
+    const response = await this.fetchApi.fetch(`${baseUrl}${endpoint}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -20,7 +20,7 @@ import {
   ScreenContextAttachment,
   UseScreenCaptureBufferOptions,
   UseScreenCaptureBufferReturn,
-} from '../types';
+} from './types';
 import { useScreenCapture } from './useScreenCapture';
 
 const DEFAULT_INTERVAL_MS = 30000;

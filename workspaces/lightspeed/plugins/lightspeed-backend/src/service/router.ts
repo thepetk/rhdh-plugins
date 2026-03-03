@@ -72,7 +72,11 @@ export async function createRouter(
 
   // Middleware proxy to exclude rcs POST endpoints
   router.use('/', async (req, res, next) => {
-    const passthroughPaths = ['/v1/query', '/v1/feedback'];
+    const passthroughPaths = [
+      '/v1/query',
+      '/v1/feedback',
+      '/v1/screen-context-query',
+    ];
     if (passthroughPaths.includes(req.path) || req.method === 'PUT') {
       return next(); // This will skip proxying and go to POST endpoints
     }
@@ -190,6 +194,81 @@ export async function createRouter(
         if (request.body.attachments?.length) {
           logger.info(
             `/v1/query includes ${request.body.attachments.length} attachment(s): ${request.body.attachments.map((a: { attachment_type: string }) => a.attachment_type).join(', ')}`,
+          );
+        }
+
+        await authorizer.authorizeUser(
+          lightspeedChatCreatePermission,
+          credentials,
+        );
+        const userQueryParam = `user_id=${encodeURIComponent(user_id)}`;
+        request.body.media_type = 'application/json'; // set media_type to receive start and end event
+        // if system_prompt is defined in lightspeed config
+        // set system_prompt to override the default rhdh system prompt
+        if (system_prompt && system_prompt.trim().length > 0) {
+          request.body.system_prompt = system_prompt;
+        }
+
+        const requestBody = JSON.stringify(request.body);
+        const mcpHeaders = mcpToken
+          ? `{"${mcpServerName}": {"Authorization": "Bearer ${mcpToken}"}}`
+          : '';
+        const fetchResponse = await fetch(
+          `http://0.0.0.0:${port}/v1/streaming_query?${userQueryParam}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'MCP-HEADERS': mcpHeaders,
+            },
+            body: requestBody,
+          },
+        );
+
+        if (!fetchResponse.ok) {
+          // Read the error body
+          const errorBody = await fetchResponse.json();
+          const errormsg = `Error from lightspeed-core server: ${errorBody.error?.message || errorBody?.detail?.cause || 'Unknown error'}`;
+          logger.error(errormsg);
+
+          // Return a 500 status for any upstream error
+          response.status(500).json({
+            error: errormsg,
+          });
+        }
+
+        // Pipe the response back to the original response
+        fetchResponse.body.pipe(response);
+      } catch (error) {
+        const errormsg = `Error fetching completions from ${provider}: ${error}`;
+        logger.error(errormsg);
+
+        if (error instanceof NotAllowedError) {
+          response.status(403).json({ error: error.message });
+        } else {
+          response.status(500).json({ error: errormsg });
+        }
+      }
+    },
+  );
+
+  router.post(
+    '/v1/screen-context-query',
+    validateCompletionsRequest,
+    async (request, response) => {
+      const { provider }: Pick<QueryRequestBody, 'provider'> = request.body;
+      try {
+        const credentials = await httpAuth.credentials(request);
+        const userEntity = await userInfo.getUserInfo(credentials);
+        const user_id = userEntity.userEntityRef;
+
+        logger.info(
+          `/v1/screen-context-query receives call from user: ${user_id}`,
+        );
+
+        if (request.body.attachments?.length) {
+          logger.info(
+            `/v1/screen-context-query includes ${request.body.attachments.length} attachment(s): ${request.body.attachments.map((a: { attachment_type: string }) => a.attachment_type).join(', ')}`,
           );
         }
 

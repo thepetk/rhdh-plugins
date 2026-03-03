@@ -18,8 +18,8 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { storageApiRef, useApi } from '@backstage/core-plugin-api';
 
-import { UseScreenContextSettingsReturn } from '../types';
-import { isGuestUser } from '../utils/user-utils';
+import { UseScreenContextSettingsReturn } from './types';
+import { isGuestUser } from './user-utils';
 
 const BUCKET_NAME = 'lightspeed';
 const SCREEN_CONTEXT_ENABLED_KEY = 'screenContextEnabled';

@@ -38,6 +38,7 @@ export type LightspeedAPI = {
     selectedProvider: string,
     conversation_id: string,
     attachments: Attachment[],
+    useScreenContext?: boolean,
   ) => Promise<ReadableStreamDefaultReader>;
   deleteConversation: (
     conversation_id: string,

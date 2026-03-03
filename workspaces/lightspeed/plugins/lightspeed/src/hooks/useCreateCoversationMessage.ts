@@ -27,6 +27,7 @@ type CreateMessageVariables = {
   selectedProvider: string;
   currentConversation: string;
   attachments: Attachment[];
+  useScreenContext?: boolean;
 };
 
 export const useCreateConversationMessage = (): UseMutationResult<
@@ -43,13 +44,8 @@ export const useCreateConversationMessage = (): UseMutationResult<
       selectedProvider,
       currentConversation,
       attachments,
-    }: {
-      prompt: string;
-      selectedModel: string;
-      selectedProvider: string;
-      currentConversation: string;
-      attachments: Attachment[];
-    }) => {
+      useScreenContext,
+    }: CreateMessageVariables) => {
       if (!currentConversation) {
         throw new Error('Failed to generate AI response');
       }
@@ -60,6 +56,7 @@ export const useCreateConversationMessage = (): UseMutationResult<
         selectedProvider,
         currentConversation,
         attachments,
+        useScreenContext,
       );
     },
     onError: error => {
