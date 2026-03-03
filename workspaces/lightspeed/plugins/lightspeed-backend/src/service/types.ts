@@ -52,6 +52,14 @@ export interface QueryRequestBody {
 
   // System prompt to override the default value
   system_prompt?: string;
+
+  // DEEP_CONTEXT_RETRIEVAL:
+  // Optional attachments (file uploads, screen context screenshots)
+  attachments?: Array<{
+    attachment_type: string;
+    content_type: string;
+    content: string;
+  }>;
 }
 
 // default number of message history being loaded

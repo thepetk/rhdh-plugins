@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Ref, useMemo, useState } from 'react';
+import React, { Ref, useMemo, useState } from 'react';
 
 import { createStyles, makeStyles } from '@material-ui/core';
 import ToggleOffOutlinedIcon from '@mui/icons-material/ToggleOffOutlined';
@@ -48,6 +48,13 @@ type LightspeedChatBoxHeaderProps = {
   models: { label: string; value: string; provider: string }[];
   isPinningChatsEnabled: boolean;
   onPinnedChatsToggle: (state: boolean) => void;
+  // DEEP_CONTEXT_RETRIEVAL:
+  // tracks if screen context retrieval is enabled,
+  // which allows users to include screenshots of
+  // their current screen as attachments to provide
+  // additional context to the AI model.
+  isScreenContextEnabled: boolean;
+  onScreenContextToggle: (state: boolean) => void;
   isModelSelectorDisabled?: boolean;
   setDisplayMode: (mode: ChatbotDisplayMode) => void;
 };
@@ -81,6 +88,11 @@ export const LightspeedChatBoxHeader = ({
   models,
   isPinningChatsEnabled,
   onPinnedChatsToggle,
+  // DEEP_CONTEXT_RETRIEVAL:
+  // pass screen context retrieval state
+  // and toggle handler to show in the UI
+  isScreenContextEnabled,
+  onScreenContextToggle,
   isModelSelectorDisabled = false,
   setDisplayMode,
 }: LightspeedChatBoxHeaderProps) => {
@@ -124,6 +136,13 @@ export const LightspeedChatBoxHeader = ({
     onPinnedChatsToggle(state);
   };
 
+  // DEEP_CONTEXT_RETRIEVAL:
+  // handler for toggling screen context retrieval,
+  // passed down from parent component
+  const handleScreenContextToggle = (state: boolean) => {
+    onScreenContextToggle(state);
+  };
+
   const handleDockedToWindow = () => {
     setDisplayMode(ChatbotDisplayMode.docked);
   };
@@ -136,6 +155,10 @@ export const LightspeedChatBoxHeader = ({
     setDisplayMode(ChatbotDisplayMode.default);
   };
 
+  // DEEP_CONTEXT_RETRIEVAL:
+  // here we simply duplicate the toggle for
+  // history chat and we make it work for
+  // screen context retrieval feature.
   return (
     <ChatbotHeaderActions>
       <Dropdown
@@ -241,6 +264,32 @@ export const LightspeedChatBoxHeader = ({
                 onClick={() => handlePinningChatsToggle(true)}
               >
                 {t('settings.pinned.enable')}
+              </DropdownItem>
+            )}
+          </DropdownList>
+        </DropdownGroup>
+        <Divider />
+        <DropdownGroup>
+          <DropdownList>
+            {isScreenContextEnabled ? (
+              <DropdownItem
+                value="disableScreenContext"
+                key="disableScreenContext"
+                icon={<ToggleOnOutlinedIcon sx={{ marginTop: '8px' }} />}
+                description={t('settings.screenContext.enabled.description')}
+                onClick={() => handleScreenContextToggle(false)}
+              >
+                {t('settings.screenContext.disable')}
+              </DropdownItem>
+            ) : (
+              <DropdownItem
+                value="enableScreenContext"
+                key="enableScreenContext"
+                icon={<ToggleOffOutlinedIcon sx={{ marginTop: '8px' }} />}
+                description={t('settings.screenContext.disabled.description')}
+                onClick={() => handleScreenContextToggle(true)}
+              >
+                {t('settings.screenContext.enable')}
               </DropdownItem>
             )}
           </DropdownList>

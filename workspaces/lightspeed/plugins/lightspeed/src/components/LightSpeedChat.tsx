@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {
+import React, {
   ChangeEvent,
   MouseEvent,
   Ref,
@@ -75,6 +75,15 @@ import {
   usePinnedChatsSettings,
   useSortSettings,
 } from '../hooks';
+// DEEP_CONTEXT_RETRIEVAL:
+// we're using two ways to provide context to
+// the LLM. One is through screenshots and
+// a second one is through React working tree
+import {
+  extractReactTree,
+  useScreenCaptureBuffer,
+  useScreenContextSettings,
+} from '../hooks/screen-context';
 import { useLightspeedDrawerContext } from '../hooks/useLightspeedDrawerContext';
 import { useLightspeedUpdatePermission } from '../hooks/useLightspeedUpdatePermission';
 import { useTranslation } from '../hooks/useTranslation';
@@ -194,6 +203,14 @@ export const LightspeedChat = ({
     unpinChat,
   } = usePinnedChatsSettings(user);
 
+  // DEEP_CONTEXT_RETRIEVAL:
+  // Get screen context settings and screenshots from hooks
+  const { isScreenContextEnabled, handleScreenContextToggle } =
+    useScreenContextSettings(user);
+  const { screenshots } = useScreenCaptureBuffer({
+    enabled: isScreenContextEnabled,
+  });
+
   const { selectedSort, handleSortChange } = useSortSettings(user);
 
   const {
@@ -311,7 +328,13 @@ export const LightspeedChat = ({
   const [messages, setMessages] =
     useState<MessageProps[]>(conversationMessages);
 
-  const sendMessage = (message: string | number) => {
+  // DEEP_CONTEXT_RETRIEVAL: When sending a message,
+  // include any file attachments and screen context
+  // screenshots as "attachments" in the API request
+
+  // TODO: Check if the change to async is completely
+  // necessary
+  const sendMessage = async (message: string | number) => {
     if (conversationId !== TEMP_CONVERSATION_ID) {
       setNewChatCreated(false);
     }
@@ -320,7 +343,36 @@ export const LightspeedChat = ({
         prompt: message.toString(),
       }),
     );
-    handleInputPrompt(message.toString(), getAttachments(fileContents));
+
+    const fileAttachments = getAttachments(fileContents);
+    // DEEP_CONTEXT_RETRIEVAL:
+    // once screen context is enabled, include the screenshot buffer
+    // objects into the attachements.
+    const screenAttachments = isScreenContextEnabled ? screenshots : [];
+    // DEEP_CONTEXT_RETRIEVAL:
+    // additionally also include the react component tree and send
+    // it as configuration attachment.
+    const reactTreeAttachment = isScreenContextEnabled
+      ? extractReactTree()
+      : null;
+    const allAttachments = [
+      ...fileAttachments,
+      ...screenAttachments,
+      ...(reactTreeAttachment ? [reactTreeAttachment] : []),
+    ];
+
+    // DEEP_CONTEXT_RETRIEVAL:
+    // here we now support attachemnts in the handleInputPrompt function,
+    // so that when a message is sent, we can include any relevant context
+    // from the user's screen along with the message.
+
+    // TODO: Are we doing this for all the messages?
+    handleInputPrompt(
+      message.toString(),
+      allAttachments,
+      undefined,
+      isScreenContextEnabled,
+    );
     setIsSendButtonDisabled(true);
     setFileContents([]);
     setDraftMessage('');
@@ -739,6 +791,13 @@ export const LightspeedChat = ({
             setDisplayMode={setDisplayMode}
             displayMode={displayMode}
             onPinnedChatsToggle={handlePinningChatsToggle}
+            // DEEP_CONTEXT_RETRIEVAL: Pass screen context
+            // settings and toggle handler as props to the
+            // header component, where the toggle UI is located
+            // so that users can enable/disable screen context
+            // as needed.
+            isScreenContextEnabled={isScreenContextEnabled}
+            onScreenContextToggle={handleScreenContextToggle}
           />
         </ChatbotHeader>
         <Divider />

@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import React from 'react';
+
 import {
   configApiRef,
   IdentityApi,
@@ -108,6 +110,19 @@ jest.mock('../../hooks/useSortSettings', () => ({
     selectedSort: 'newest',
     handleSortChange: jest.fn(),
   }),
+}));
+
+jest.mock('../../hooks/screen-context', () => ({
+  useScreenContextSettings: jest.fn().mockReturnValue({
+    isScreenContextEnabled: false,
+    handleScreenContextToggle: jest.fn(),
+  }),
+  useScreenCaptureBuffer: jest.fn().mockReturnValue({
+    screenshots: [],
+    isCapturing: false,
+    captureError: null,
+  }),
+  extractReactTree: jest.fn().mockReturnValue(null),
 }));
 
 jest.mock('@patternfly/chatbot', () => {

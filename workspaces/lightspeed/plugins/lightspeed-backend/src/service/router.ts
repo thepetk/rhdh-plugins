@@ -47,7 +47,8 @@ export async function createRouter(
   const { logger, config, httpAuth, userInfo, permissions } = options;
 
   const router = Router();
-  router.use(express.json());
+  // we set a limit to 10mb so we can transfer
+  router.use(express.json({ limit: '10mb' }));
 
   const port = config.getOptionalNumber('lightspeed.servicePort') ?? 8080;
   const system_prompt = config.getOptionalString('lightspeed.systemPrompt');
@@ -72,7 +73,15 @@ export async function createRouter(
 
   // Middleware proxy to exclude rcs POST endpoints
   router.use('/', async (req, res, next) => {
-    const passthroughPaths = ['/v1/query', '/v1/feedback'];
+    // DEEP_CONTEXT_RETRIEVAL:
+    // /v1/screen-context-query will be used over
+    // /v1/query when the user has enabled
+    // screen context sharing from the frontend
+    const passthroughPaths = [
+      '/v1/query',
+      '/v1/feedback',
+      '/v1/screen-context-query',
+    ];
     if (passthroughPaths.includes(req.path) || req.method === 'PUT') {
       return next(); // This will skip proxying and go to POST endpoints
     }
@@ -186,6 +195,93 @@ export async function createRouter(
         const user_id = userEntity.userEntityRef;
 
         logger.info(`/v1/query receives call from user: ${user_id}`);
+
+        if (request.body.attachments?.length) {
+          logger.info(
+            `/v1/query includes ${request.body.attachments.length} attachment(s): ${request.body.attachments.map((a: { attachment_type: string }) => a.attachment_type).join(', ')}`,
+          );
+        }
+
+        await authorizer.authorizeUser(
+          lightspeedChatCreatePermission,
+          credentials,
+        );
+        const userQueryParam = `user_id=${encodeURIComponent(user_id)}`;
+        request.body.media_type = 'application/json'; // set media_type to receive start and end event
+        // if system_prompt is defined in lightspeed config
+        // set system_prompt to override the default rhdh system prompt
+        if (system_prompt && system_prompt.trim().length > 0) {
+          request.body.system_prompt = system_prompt;
+        }
+
+        const requestBody = JSON.stringify(request.body);
+        const mcpHeaders = mcpToken
+          ? `{"${mcpServerName}": {"Authorization": "Bearer ${mcpToken}"}}`
+          : '';
+        const fetchResponse = await fetch(
+          `http://0.0.0.0:${port}/v1/streaming_query?${userQueryParam}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'MCP-HEADERS': mcpHeaders,
+            },
+            body: requestBody,
+          },
+        );
+
+        if (!fetchResponse.ok) {
+          // Read the error body
+          const errorBody = await fetchResponse.json();
+          const errormsg = `Error from lightspeed-core server: ${errorBody.error?.message || errorBody?.detail?.cause || 'Unknown error'}`;
+          logger.error(errormsg);
+
+          // Return a 500 status for any upstream error
+          response.status(500).json({
+            error: errormsg,
+          });
+        }
+
+        // Pipe the response back to the original response
+        fetchResponse.body.pipe(response);
+      } catch (error) {
+        const errormsg = `Error fetching completions from ${provider}: ${error}`;
+        logger.error(errormsg);
+
+        if (error instanceof NotAllowedError) {
+          response.status(403).json({ error: error.message });
+        } else {
+          response.status(500).json({ error: errormsg });
+        }
+      }
+    },
+  );
+
+  // Screen-context variant of /v1/query. Called by the frontend when the user
+  // has "Enable screen context" toggled on, meaning the request body will
+  // include 'screenshot' and 'configuration' (React component tree) attachments
+  // in addition to any file attachments. Both routes forward to the same
+  // lightspeed-core /v1/streaming_query endpoint — the separate path exists
+  // purely so backend logs can distinguish screen-context-enriched queries.
+  router.post(
+    '/v1/screen-context-query',
+    validateCompletionsRequest,
+    async (request, response) => {
+      const { provider }: Pick<QueryRequestBody, 'provider'> = request.body;
+      try {
+        const credentials = await httpAuth.credentials(request);
+        const userEntity = await userInfo.getUserInfo(credentials);
+        const user_id = userEntity.userEntityRef;
+
+        logger.info(
+          `/v1/screen-context-query receives call from user: ${user_id}`,
+        );
+
+        if (request.body.attachments?.length) {
+          logger.info(
+            `/v1/screen-context-query includes ${request.body.attachments.length} attachment(s): ${request.body.attachments.map((a: { attachment_type: string }) => a.attachment_type).join(', ')}`,
+          );
+        }
 
         await authorizer.authorizeUser(
           lightspeedChatCreatePermission,
