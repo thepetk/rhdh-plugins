@@ -57,6 +57,10 @@ export class LightspeedApiClient implements LightspeedAPI {
     selectedProvider: string,
     conversation_id: string,
     attachments: Attachment[],
+    // When true, the request is routed to /v1/screen-context-query so the
+    // backend can log/handle screenshot and React tree attachments separately
+    // from plain /v1/query calls. Both endpoints forward to the same
+    // lightspeed-core streaming endpoint.
     useScreenContext = false,
   ) {
     const baseUrl = await this.getBaseUrl();

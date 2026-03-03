@@ -75,6 +75,10 @@ import {
   usePinnedChatsSettings,
   useSortSettings,
 } from '../hooks';
+// Screen context hooks and utilities moved from the standalone
+// lightspeed-screen-context plugin into this plugin directly.
+// extractReactTree captures the React fiber tree and sends it as a
+// 'configuration' attachment alongside screenshot attachments.
 import {
   extractReactTree,
   useScreenCaptureBuffer,
@@ -333,7 +337,12 @@ export const LightspeedChat = ({
     );
 
     const fileAttachments = getAttachments(fileContents);
+    // When screen context is enabled, include the rolling screenshot buffer
+    // (captured periodically in the background by useScreenCaptureBuffer).
     const screenAttachments = isScreenContextEnabled ? screenshots : [];
+    // When screen context is enabled, also capture the current React component
+    // tree via fiber traversal and send it as a 'configuration' attachment so
+    // the LLM has structural context about the current page.
     const reactTreeAttachment = isScreenContextEnabled
       ? extractReactTree()
       : null;
@@ -343,6 +352,8 @@ export const LightspeedChat = ({
       ...(reactTreeAttachment ? [reactTreeAttachment] : []),
     ];
 
+    // Pass isScreenContextEnabled so the API client can route the request to
+    // /v1/screen-context-query instead of /v1/query when context is active.
     handleInputPrompt(
       message.toString(),
       allAttachments,

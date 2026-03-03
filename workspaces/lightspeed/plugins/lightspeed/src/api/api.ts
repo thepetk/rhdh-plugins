@@ -38,6 +38,8 @@ export type LightspeedAPI = {
     selectedProvider: string,
     conversation_id: string,
     attachments: Attachment[],
+    // Optional flag: when true, routes to /v1/screen-context-query so the
+    // backend can distinguish screen-context-enriched queries from plain ones.
     useScreenContext?: boolean,
   ) => Promise<ReadableStreamDefaultReader>;
   deleteConversation: (

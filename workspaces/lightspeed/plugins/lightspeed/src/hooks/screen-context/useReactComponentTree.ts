@@ -21,6 +21,11 @@ interface TreeNode {
   children: TreeNode[];
 }
 
+/**
+ * Reads the React fiber root from a DOM element by looking for the internal
+ * property React attaches at runtime (__reactFiber* in React 17+,
+ * __reactInternalInstance* in React 16).
+ */
 function getFiber(el: Element): any {
   const key = Object.keys(el).find(
     k =>
@@ -29,13 +34,20 @@ function getFiber(el: Element): any {
   return key ? (el as any)[key] : null;
 }
 
+/**
+ * Walks the React fiber tree depth-first up to `maxDepth` levels, building a
+ * lightweight name-only tree. Nodes whose display name matches
+ * chatbot/lightspeed/drawer are pruned so the LLM only sees the host
+ * application's component structure, not the assistant UI itself.
+ */
 function traverseFiber(fiber: any, depth = 0, maxDepth = 10): TreeNode | null {
   if (!fiber || depth > maxDepth) return null;
   const name =
     typeof fiber.type === 'string'
       ? fiber.type
       : (fiber.type?.displayName ?? fiber.type?.name ?? null);
-  // exclude chatbot/lightspeed UI from the tree
+  // Exclude the Lightspeed chatbot/drawer UI from the tree so the LLM
+  // receives context about the host page, not the assistant itself.
   if (name && /chatbot|lightspeed|drawer/i.test(name)) return null;
 
   const children: TreeNode[] = [];
@@ -49,6 +61,17 @@ function traverseFiber(fiber: any, depth = 0, maxDepth = 10): TreeNode | null {
   return { name, children };
 }
 
+/**
+ * Extracts the current React component tree from the page and returns it as a
+ * UIContextAttachment ready to be sent alongside the user's message.
+ *
+ * attachment_type is 'configuration' — the closest semantic match in the
+ * lightspeed-stack ATTACHMENT_TYPES frozenset for a structured UI description.
+ * content is plain JSON (not base64) so the LLM can read it directly; the
+ * lightspeed-stack appends attachment content verbatim to the prompt.
+ *
+ * Returns null if the fiber root cannot be found or traversal fails.
+ */
 export function extractReactTree(): UIContextAttachment | null {
   try {
     const fiber = getFiber(document.body);
@@ -61,9 +84,9 @@ export function extractReactTree(): UIContextAttachment | null {
       componentTree: tree,
     };
     return {
-      attachment_type: 'ui_context',
+      attachment_type: 'configuration',
       content_type: 'application/json',
-      content: btoa(unescape(encodeURIComponent(JSON.stringify(payload)))),
+      content: JSON.stringify(payload),
     };
   } catch {
     return null;

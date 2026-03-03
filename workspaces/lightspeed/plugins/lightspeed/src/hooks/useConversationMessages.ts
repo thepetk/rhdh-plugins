@@ -80,6 +80,8 @@ export type UseConversationMessagesReturn = {
     prompt: string,
     attachments?: Attachment[],
     apiPrompt?: string,
+    // When true, the API call is routed to /v1/screen-context-query so the
+    // backend can distinguish screen-context-enriched queries.
     useScreenContext?: boolean,
   ) => Promise<void>;
   conversations: Conversations;
@@ -225,6 +227,8 @@ export const useConversationMessages = (
       prompt: string,
       attachments: Attachment[] = [],
       apiPrompt?: string,
+      // Threaded from LightSpeedChat.sendMessage → useCreateConversationMessage
+      // → LightspeedApiClient.createMessage to select the correct endpoint.
       useScreenContext?: boolean,
     ) => {
       let newConversationId = '';
@@ -267,6 +271,8 @@ export const useConversationMessages = (
       let buffer = '';
 
       try {
+        // useScreenContext is forwarded to LightspeedApiClient.createMessage
+        // so it can choose between /v1/query and /v1/screen-context-query.
         const reader = await createMessage({
           prompt: apiPrompt || prompt,
           selectedModel,

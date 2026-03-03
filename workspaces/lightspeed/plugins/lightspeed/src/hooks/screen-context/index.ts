@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+// Screen context hooks and utilities. These were previously in the standalone
+// lightspeed-screen-context plugin and have been merged into this plugin to
+// remove the external package dependency and add React component tree capture.
 export { useScreenContextSettings } from './useScreenContextSettings';
 export { useScreenCapture } from './useScreenCapture';
 export { useScreenCaptureBuffer } from './useScreenCaptureBuffer';

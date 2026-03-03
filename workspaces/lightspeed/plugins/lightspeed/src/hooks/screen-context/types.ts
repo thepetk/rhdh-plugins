@@ -18,19 +18,27 @@
  * A screenshot attachment ready to be sent via the existing attachment mechanism.
  * Maps directly to the Attachment type in the lightspeed plugin.
  */
+// attachment_type 'screenshot' is validated against the lightspeed-stack
+// ATTACHMENT_TYPES frozenset (lightspeed-stack/src/constants.py).
+// content_type 'image/png' is allowed because the stack currently accepts
+// any content type (see test_attachment.py: "for now we allow any content type").
 export interface ScreenContextAttachment {
-  attachment_type: 'screen_context';
+  attachment_type: 'screenshot';
   content_type: 'image/png';
   content: string;
 }
 
 /**
- * A React component tree attachment serialised as JSON.
+ * A React component tree attachment serialised as plain JSON.
+ * Uses 'configuration' as the attachment_type — the closest semantic match
+ * in the lightspeed-stack ATTACHMENT_TYPES frozenset for a structured UI
+ * description. The stack appends attachment content verbatim to the LLM prompt,
+ * so content is plain JSON (not base64) to keep it human-readable for the LLM.
  */
 export interface UIContextAttachment {
-  attachment_type: 'ui_context';
+  attachment_type: 'configuration';
   content_type: 'application/json';
-  content: string; // base64-encoded JSON
+  content: string; // plain JSON string
 }
 
 /**

@@ -100,7 +100,7 @@ export const useScreenCapture = (
         const base64Content = dataUrl.replace(/^data:image\/png;base64,/, '');
 
         return {
-          attachment_type: 'screen_context',
+          attachment_type: 'screenshot',
           content_type: 'image/png',
           content: base64Content,
         };

@@ -72,6 +72,10 @@ export async function createRouter(
 
   // Middleware proxy to exclude rcs POST endpoints
   router.use('/', async (req, res, next) => {
+    // Paths handled by dedicated route handlers below — skip the proxy.
+    // /v1/screen-context-query mirrors /v1/query but is called when the
+    // frontend has screen context (screenshots + React tree) enabled, allowing
+    // the backend to distinguish and log those requests separately.
     const passthroughPaths = [
       '/v1/query',
       '/v1/feedback',
@@ -252,6 +256,12 @@ export async function createRouter(
     },
   );
 
+  // Screen-context variant of /v1/query. Called by the frontend when the user
+  // has "Enable screen context" toggled on, meaning the request body will
+  // include 'screenshot' and 'configuration' (React component tree) attachments
+  // in addition to any file attachments. Both routes forward to the same
+  // lightspeed-core /v1/streaming_query endpoint — the separate path exists
+  // purely so backend logs can distinguish screen-context-enriched queries.
   router.post(
     '/v1/screen-context-query',
     validateCompletionsRequest,

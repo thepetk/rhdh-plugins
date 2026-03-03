@@ -27,6 +27,8 @@ type CreateMessageVariables = {
   selectedProvider: string;
   currentConversation: string;
   attachments: Attachment[];
+  // When true, routes the API call to /v1/screen-context-query instead of
+  // /v1/query. Threaded from LightSpeedChat → handleInputPrompt → here.
   useScreenContext?: boolean;
 };
 
