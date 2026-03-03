@@ -78,6 +78,20 @@ export const useScreenCapture = (
             }
             return false;
           },
+          onclone: (clonedDoc: Document) => {
+            // html2canvas cannot parse the CSS color() function (e.g.
+            // color(display-p3 0.2 0.4 0.6)) used by PatternFly and other
+            // modern CSS. Replace every occurrence with 'transparent' in the
+            // cloned document so the capture doesn't throw.
+            clonedDoc.querySelectorAll('style').forEach(style => {
+              if (style.textContent) {
+                style.textContent = style.textContent.replace(
+                  /\bcolor\([^)]*\)/g,
+                  'transparent',
+                );
+              }
+            });
+          },
         });
 
         let finalCanvas = canvas;
