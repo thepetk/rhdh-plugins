@@ -29,8 +29,7 @@ const DEFAULT_OPTIONS: CaptureOptions = {
   maxWidth: 1920,
   maxHeight: 1080,
   logging: false,
-  // Ignore elements that are likely to be chatbots or similar interactive widgets
-  // to avoid capturing them in screenshots
+  // ignore elements that are likely to from the lightspeed chat
   ignoreSelector:
     '.pf-chatbot, [class*="chatbot"], [class*="lightspeed-drawer"]',
 };
@@ -69,9 +68,21 @@ export const useScreenCapture = (
       try {
         const canvas = await snapdom.toCanvas(document.body, {
           scale: mergedOptions.scale,
-          filter: mergedOptions.ignoreSelector
-            ? (el: Element) => !el.matches(mergedOptions.ignoreSelector!)
-            : undefined,
+          // filterMode:'remove' is required
+          // without it snapdom ignores the filter return value
+          // and renders excluded elements anyway.
+          filterMode: 'remove',
+          filter: (el: Element) => {
+            // iframes throw security errors and same-origin ones may trigger
+            // browser prompts during rasterisation.
+            if (el.tagName?.toLowerCase() === 'iframe') return false;
+            if (
+              mergedOptions.ignoreSelector &&
+              el.matches(mergedOptions.ignoreSelector)
+            )
+              return false;
+            return true;
+          },
         });
 
         let finalCanvas = canvas;

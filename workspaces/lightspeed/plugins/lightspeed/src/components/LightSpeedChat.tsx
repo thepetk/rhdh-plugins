@@ -331,9 +331,6 @@ export const LightspeedChat = ({
   // DEEP_CONTEXT_RETRIEVAL: When sending a message,
   // include any file attachments and screen context
   // screenshots as "attachments" in the API request
-
-  // TODO: Check if the change to async is completely
-  // necessary
   const sendMessage = async (message: string | number) => {
     if (conversationId !== TEMP_CONVERSATION_ID) {
       setNewChatCreated(false);
@@ -365,8 +362,6 @@ export const LightspeedChat = ({
     // here we now support attachemnts in the handleInputPrompt function,
     // so that when a message is sent, we can include any relevant context
     // from the user's screen along with the message.
-
-    // TODO: Are we doing this for all the messages?
     handleInputPrompt(message.toString(), allAttachments);
     setIsSendButtonDisabled(true);
     setFileContents([]);

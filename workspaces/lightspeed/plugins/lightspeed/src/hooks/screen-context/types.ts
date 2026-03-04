@@ -38,14 +38,15 @@ export interface ScreenContextAttachment {
 export interface UIContextAttachment {
   attachment_type: 'configuration';
   content_type: 'application/json';
-  content: string; // plain JSON string
+  // just a plain JSON string
+  content: string;
 }
 
 /**
  * Options for controlling the screenshot capture behavior.
  */
 export interface CaptureOptions {
-  /** Scale factor for the rendered canvas (default: 0.5 for performance) */
+  /** scale factor for the rendered canvas (default: 0.5) */
   scale?: number;
   /** Maximum width in pixels (default: 1920) */
   maxWidth?: number;

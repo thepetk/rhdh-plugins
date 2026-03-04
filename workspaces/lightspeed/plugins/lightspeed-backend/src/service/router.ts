@@ -192,6 +192,17 @@ export async function createRouter(
           logger.info(
             `/v1/query includes ${request.body.attachments.length} attachment(s): ${request.body.attachments.map((a: { attachment_type: string }) => a.attachment_type).join(', ')}`,
           );
+          for (const a of request.body.attachments as {
+            attachment_type: string;
+            content_type: string;
+            content: string;
+          }[]) {
+            logger.info(
+              `attachment [${a.attachment_type}/${a.content_type}] content preview: ${a.content.slice(0, 200)}`,
+            );
+          }
+        } else {
+          logger.info('/v1/query received no attachments');
         }
 
         await authorizer.authorizeUser(
