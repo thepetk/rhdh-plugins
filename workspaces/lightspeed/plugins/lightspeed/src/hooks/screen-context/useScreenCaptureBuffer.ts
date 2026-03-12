@@ -23,7 +23,7 @@ import {
 } from './types';
 import { useScreenCapture } from './useScreenCapture';
 
-const DEFAULT_INTERVAL_MS = 5000;
+const DEFAULT_INTERVAL_MS = 15000;
 const DEFAULT_MAX_SCREENSHOTS = 5;
 
 /**
