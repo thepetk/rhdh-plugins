@@ -22,6 +22,21 @@ import type {
 } from './types';
 
 /**
+ * Normalizes a Kagenti API response to an array.
+ * Handles plain arrays, { namespaces: [] }, { agents: [] }, { items: [] }, etc.
+ */
+function toArray<T>(data: unknown, keys: string[]): T[] {
+  if (Array.isArray(data)) return data as T[];
+  if (data && typeof data === 'object') {
+    for (const key of keys) {
+      const candidate = (data as Record<string, unknown>)[key];
+      if (Array.isArray(candidate)) return candidate as T[];
+    }
+  }
+  return [];
+}
+
+/**
  * fetchOAuthToken obtains a Bearer token via OAuth2 Client Credentials Grant
  */
 export async function fetchOAuthToken(
@@ -70,7 +85,12 @@ export async function fetchKagentiNamespaces(
     throw new Error(`Failed to fetch Kagenti namespaces: ${res.statusText}`);
   }
 
-  return res.json();
+  const data = await res.json();
+  const items = toArray<string | KagentiNamespace>(data, [
+    'namespaces',
+    'items',
+  ]);
+  return items.map(item => (typeof item === 'string' ? { name: item } : item));
 }
 
 /**
@@ -95,7 +115,8 @@ export async function fetchKagentiAgents(
     throw new Error(`Failed to fetch Kagenti agents: ${res.statusText}`);
   }
 
-  return res.json();
+  const data = await res.json();
+  return toArray<KagentiAgent>(data, ['agents', 'items']);
 }
 
 /**

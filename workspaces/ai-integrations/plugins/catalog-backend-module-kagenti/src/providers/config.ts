@@ -34,7 +34,7 @@ export function readKagentiEntityConfigs(config: Config): KagentiConfig[] {
 }
 
 function readKagentiEntityConfig(id: string, config: Config): KagentiConfig {
-  const baseUrl = config.getString('baseUrl');
+  const baseUrl = config.getString('baseUrl').replace(/\/+$/, '');
   const clientId = config.getString('clientId');
   const clientSecret = config.getString('clientSecret');
   const tokenUrl = config.getString('tokenUrl');
